@@ -10,11 +10,23 @@ A Python automation tool that submits a Google Form repeatedly using structured 
 
 ## Setup
 
-1. **Install Dependencies**
-   ```bash
-   pip install -r requirements.txt
-   playwright install chromium
-   ```
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/form-submit-auto.git
+cd form-submit-auto
+```
+
+### 2. Create a Virtual Environment (Recommended)
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows use: venv\Scripts\activate
+```
+
+### 3. Install Dependencies
+```bash
+pip install -r requirements.txt
+playwright install chromium
+```
 
 2. **Configuration**
    Copy `.env.example` to `.env` and fill in the values:
