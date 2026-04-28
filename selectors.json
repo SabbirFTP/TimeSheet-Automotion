@@ -1,0 +1,10 @@
+{
+  "project": "input[aria-labelledby='i1']",
+  "description": "textarea[aria-labelledby='i5']",
+  "start_time": "input[aria-label='Hour']",
+  "end_time": "input[aria-label='Minute']",
+  "notes": "textarea[aria-labelledby='i13']",
+  "rating": "div[data-value='10']",
+  "submit_button": "div[role='button']:has-text('Submit')",
+  "submit_another_link": "a:has-text('Submit another response')"
+}

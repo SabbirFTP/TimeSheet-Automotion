@@ -1,0 +1,18 @@
+[
+  {
+    "project": "API Integration",
+    "description": "Integrated backend APIs for homechef cloud app",
+    "start_time": "10:20",
+    "end_time": "11:45",
+    "notes": "Used Retrofit + JWT",
+    "rating": 10
+  },
+  {
+    "project": "Database Migration",
+    "description": "Migrated user data from v1 to v2 schema",
+    "start_time": "13:00",
+    "end_time": "15:30",
+    "notes": "No downtime observed",
+    "rating": 9
+  }
+]
