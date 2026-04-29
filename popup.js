@@ -302,8 +302,10 @@ async function initChatHelper() {
 function renderInsertState(container) {
   container.innerHTML = `
     <button class="insert-chat-btn" id="insertChatBtn">
-      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      Set AI Chat URL
+      <span class="btn-icon-small">
+        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      </span>
+      Configure AI Chat URL
     </button>
   `;
 
@@ -313,11 +315,13 @@ function renderInsertState(container) {
 }
 
 function renderInputState(container, existingUrl) {
+  const isEditing = existingUrl !== '';
   container.innerHTML = `
     <div class="chat-url-input-wrapper">
       <input type="url" class="chat-input" id="chatUrlInput" placeholder="https://chatgpt.com/g/g-..." value="${existingUrl}">
       <div class="chat-actions">
-        <button class="save-btn" id="saveChatBtn">Save URL</button>
+        <button class="save-btn" id="saveChatBtn">${isEditing ? 'Update' : 'Save'} URL</button>
+        ${isEditing ? '<button class="remove-btn" id="removeChatBtn">Remove</button>' : ''}
         <button class="cancel-btn" id="cancelChatBtn">Cancel</button>
       </div>
     </div>
@@ -333,6 +337,15 @@ function renderInputState(container, existingUrl) {
       initChatHelper();
     }
   });
+
+  if (isEditing) {
+    document.getElementById('removeChatBtn').addEventListener('click', async () => {
+      if (confirm('Are you sure you want to remove the Chat URL?')) {
+        await chrome.storage.local.remove('trainedChatUrl');
+        initChatHelper();
+      }
+    });
+  }
 
   document.getElementById('cancelChatBtn').addEventListener('click', () => {
     initChatHelper();

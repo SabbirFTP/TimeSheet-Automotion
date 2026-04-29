@@ -667,27 +667,59 @@ textarea::placeholder {
   fill: currentColor;
 }
 
-.insert-chat-btn {
-  width: 100%;
-  background: var(--surface-raised);
-  border: 2px dashed var(--border);
-  color: var(--text-secondary);
-  padding: 14px;
+.btn-icon-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-icon-small svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+.remove-btn {
+  background: var(--status-error-bg);
+  color: var(--status-error);
+  border: 1px solid var(--status-error);
+  padding: 10px 16px;
   border-radius: var(--radius-md);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.remove-btn:hover {
+  background: var(--status-error);
+  color: white;
+}
+
+.insert-chat-btn {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .insert-chat-btn:hover {
   border-color: var(--accent);
   color: var(--accent);
-  background: var(--surface);
+  background: var(--surface-raised);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
 }
 
 /* ================= STATUS ================= */
