@@ -1,15 +1,90 @@
-body {
-  width: 350px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  margin: 0;
-  padding: 15px;
-  background-color: #f8f9fa;
+:root {
+  --bg: #f8f9fa;
+  --surface: #ffffff;
+  --text-primary: #202124;
+  --text-secondary: #5f6368;
+  --border: #dadce0;
+  --accent: #1a73e8;
+  --accent-hover: #1557b0;
+  --stat-bg: #ffffff;
+  --input-bg: #ffffff;
+  --shadow: 0 1px 3px rgba(60,64,67, 0.3), 0 4px 8px 3px rgba(60,64,67, 0.15);
 }
 
-.container {
+[data-theme='dark'] {
+  --bg: #121212;
+  --surface: #1e1e1e;
+  --text-primary: #e8eaed;
+  --text-secondary: #9aa0a6;
+  --border: #3c4043;
+  --accent: #8ab4f8;
+  --accent-hover: #aecbfa;
+  --stat-bg: #2d2e31;
+  --input-bg: #1e1e1e;
+  --shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+body {
+  width: 360px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 16px;
+  background-color: var(--bg);
+  color: var(--text-primary);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 18px;
+  margin: 0;
+  color: var(--accent);
+}
+
+.theme-toggle {
+  display: flex;
+  background: var(--border);
+  padding: 2px;
+  border-radius: 20px;
+  gap: 2px;
+}
+
+.theme-btn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  margin: 0;
+  width: 28px;
+  height: 28px;
+}
+
+.theme-btn:hover {
+  background: rgba(128,128,128,0.1);
+}
+
+.theme-btn.active {
+  background: var(--surface);
+  color: var(--accent);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.theme-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 h1 {
@@ -27,54 +102,62 @@ h1 {
 }
 
 .stat-card {
-  background: white;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-  padding: 8px;
+  background: var(--stat-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .stat-label {
-  font-size: 11px;
-  color: #5f6368;
+  font-size: 10px;
+  color: var(--text-secondary);
   text-transform: uppercase;
+  font-weight: 600;
   letter-spacing: 0.5px;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: bold;
-  color: #202124;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text-primary);
 }
 
-.stat-card.highlight .stat-value { color: #f29900; }
-.stat-card.success .stat-value { color: #1e8e3e; }
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-bottom: 15px;
-}
+.stat-card.highlight .stat-value { color: #f9ab00; }
+.stat-card.success .stat-value { color: #34a853; }
 
 .input-group label {
-  font-size: 13px;
-  font-weight: 500;
-  color: #3c4043;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
 }
 
 .input-group small {
-  font-size: 11px;
-  color: #70757a;
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.8;
 }
 
-input[type="date"] {
-  padding: 8px;
-  border: 1px solid #dadce0;
-  border-radius: 6px;
+input[type="date"], textarea {
+  background: var(--input-bg);
+  color: var(--text-primary);
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   font-family: inherit;
+  font-size: 13px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+input[type="date"]:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(26,115,232,0.1);
 }
 
 textarea {
@@ -96,31 +179,32 @@ textarea:focus {
 }
 
 button {
-  background-color: #1a73e8;
-  color: white;
+  background-color: var(--accent);
+  color: #ffffff;
   border: none;
   padding: 12px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 10px;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   margin-bottom: 8px;
+  width: 100%;
 }
 
 button:hover {
-  background-color: #1557b0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  background-color: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 button.outline {
   background-color: transparent;
-  border: 1px solid #dadce0;
-  color: #5f6368;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
 }
 
 button.outline:hover {
-  background-color: #f1f3f4;
-  color: #202124;
+  background-color: var(--border);
+  color: var(--text-primary);
 }
 
 #status {

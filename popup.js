@@ -1,3 +1,35 @@
+/** Theme Management **/
+async function initTheme() {
+  const settings = await chrome.storage.local.get(['theme']);
+  const theme = settings.theme || 'system';
+  applyTheme(theme);
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  if (isDark) {
+    root.setAttribute('data-theme', 'dark');
+  } else {
+    root.removeAttribute('data-theme');
+  }
+
+  // Update UI active state
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.id === `theme-${theme}`);
+  });
+}
+
+// Theme Event Listeners
+['light', 'dark', 'system'].forEach(t => {
+  document.getElementById(`theme-${t}`).addEventListener('click', async () => {
+    await chrome.storage.local.set({ theme: t });
+    applyTheme(t);
+  });
+});
+
+/** Stats Update **/
 async function updateStats() {
   const state = await chrome.storage.local.get(['automationData', 'currentIndex', 'isActive']);
   const statsGrid = document.getElementById('statsGrid');
@@ -70,6 +102,7 @@ document.getElementById('resetButton').addEventListener('click', async () => {
 });
 
 // Initial load
+initTheme();
 updateStats();
 chrome.storage.local.get(['customDate'], (res) => {
   if (res.customDate) document.getElementById('submitDate').value = res.customDate;
