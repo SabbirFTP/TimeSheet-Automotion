@@ -332,10 +332,31 @@ function renderInputState(container, existingUrl) {
 
   document.getElementById('saveChatBtn').addEventListener('click', async () => {
     const url = input.value.trim();
-    if (url) {
-      await chrome.storage.local.set({ trainedChatUrl: url });
-      initChatHelper();
+    const status = document.getElementById('status');
+    
+    // URL Regex validation
+    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    
+    if (!url) {
+      status.textContent = 'Please enter a URL';
+      status.className = 'error';
+      return;
     }
+
+    if (!urlRegex.test(url)) {
+      status.textContent = 'Please enter a valid URL (e.g., https://chatgpt.com)';
+      status.className = 'error';
+      input.focus();
+      return;
+    }
+
+    // Ensure protocol exists
+    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
+    
+    await chrome.storage.local.set({ trainedChatUrl: finalUrl });
+    status.textContent = 'Chat URL saved successfully!';
+    status.className = 'success';
+    initChatHelper();
   });
 
   if (isEditing) {
