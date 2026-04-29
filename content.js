@@ -72,7 +72,9 @@ async function handleDropdown(container, value) {
     // If no listbox found, try to find the clickable element
     if (!listbox && !input) {
       // Try to find any clickable element that might trigger dropdown
-      const clickable = container.querySelector('[role="combobox"], [aria-haspopup="listbox"]');
+      const clickable = container.querySelector(
+        '[role="combobox"], [aria-haspopup="listbox"]',
+      );
       if (clickable) {
         listbox = clickable;
       } else {
@@ -115,8 +117,8 @@ async function handleDropdown(container, value) {
 
     // Strategy 2: Case-insensitive exact match
     if (!target) {
-      target = Array.from(options).find((o) =>
-        o.innerText.trim().toLowerCase() === value.toLowerCase()
+      target = Array.from(options).find(
+        (o) => o.innerText.trim().toLowerCase() === value.toLowerCase(),
       );
       if (target) {
         console.log("✅ Found case-insensitive match");
@@ -126,7 +128,7 @@ async function handleDropdown(container, value) {
     // Strategy 3: Contains match (case-insensitive)
     if (!target) {
       target = Array.from(options).find((o) =>
-        o.innerText.toLowerCase().includes(value.toLowerCase())
+        o.innerText.toLowerCase().includes(value.toLowerCase()),
       );
       if (target) {
         console.log("✅ Found partial match");
@@ -140,12 +142,12 @@ async function handleDropdown(container, value) {
         value.toLowerCase(),
         value.toUpperCase(),
         value.trim(),
-        value.replace(/\s+/g, ' '),
+        value.replace(/\s+/g, " "),
       ];
 
       for (const variation of variations) {
-        target = Array.from(options).find((o) =>
-          o.innerText.trim() === variation
+        target = Array.from(options).find(
+          (o) => o.innerText.trim() === variation,
         );
         if (target) break;
       }
@@ -156,7 +158,10 @@ async function handleDropdown(container, value) {
 
     if (!target) {
       console.log("❌ Option not found:", value);
-      console.log("Available options:", Array.from(options).map(o => o.innerText.trim()));
+      console.log(
+        "Available options:",
+        Array.from(options).map((o) => o.innerText.trim()),
+      );
       return false;
     }
 
@@ -183,7 +188,12 @@ async function handleDropdown(container, value) {
     // Verify selection by checking the displayed value
     if (input) {
       const displayedValue = input.value || input.innerText;
-      if (displayedValue && displayedValue.toLowerCase().includes(value.toLowerCase().substring(0, 10))) {
+      if (
+        displayedValue &&
+        displayedValue
+          .toLowerCase()
+          .includes(value.toLowerCase().substring(0, 10))
+      ) {
         console.log("✅ Selection verified");
       } else {
         console.log("⚠️ Selection may not have been applied correctly");
