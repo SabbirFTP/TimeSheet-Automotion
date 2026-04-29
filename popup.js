@@ -376,31 +376,27 @@ async function initAccordion() {
   };
 
   assistantToggle.addEventListener('click', () => {
-    const isCollapsed = assistantSection.classList.contains('collapsed');
-    if (isCollapsed) {
+    if (assistantSection.classList.contains('collapsed')) {
       openSection(assistantSection, assistantContent);
       closeSection(automationSection, automationContent);
-    } else {
-      closeSection(assistantSection, assistantContent);
     }
   });
 
   automationToggle.addEventListener('click', () => {
-    const isCollapsed = automationSection.classList.contains('collapsed');
-    if (isCollapsed) {
+    if (automationSection.classList.contains('collapsed')) {
       openSection(automationSection, automationContent);
       closeSection(assistantSection, assistantContent);
-    } else {
-      closeSection(automationSection, automationContent);
     }
   });
 
   // Initial State: Expand Assistant by default unless automation is active
   const state = await chrome.storage.local.get(['isActive']);
   if (state.isActive) {
-    toggleSection(automationSection, assistantSection, automationContent, assistantContent);
+    openSection(automationSection, automationContent);
+    closeSection(assistantSection, assistantContent);
   } else {
-    toggleSection(assistantSection, automationSection, assistantContent, automationContent);
+    openSection(assistantSection, assistantContent);
+    closeSection(automationSection, automationContent);
   }
 }
 
