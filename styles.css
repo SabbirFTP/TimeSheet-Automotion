@@ -543,11 +543,33 @@ textarea::placeholder {
   backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.assistant-content {
+  padding: 0 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow: var(--shadow-md);
+}
+
+.assistant-content.hidden {
+  display: none;
+}
+
+/* Common Header Styles for Sections */
+.assistant-section .collapse-toggle {
+  background: var(--surface-glass);
+  border: none;
+}
+
+.assistant-section:not(.collapsed) .collapse-toggle {
+  border-bottom: 1px solid var(--border-light);
+  margin-bottom: 12px;
 }
 
 .label-row {
@@ -589,9 +611,14 @@ textarea::placeholder {
 }
 
 #dailyNotes {
-  height: 100px;
+  height: auto;
+  min-height: 80px;
+  max-height: 300px;
   font-family: inherit;
   font-size: 13px;
+  overflow-y: hidden;
+  line-height: 1.6;
+  resize: none;
 }
 
 .chat-helper-compact {
@@ -621,19 +648,31 @@ textarea::placeholder {
   gap: 8px;
 }
 
-.edit-chat-btn, .toolbar-btn {
+.edit-chat-btn {
   width: 32px;
   height: 32px;
-  background: var(--surface);
+  background: var(--surface-raised);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
+  color: var(--accent); /* Synced with theme accent */
+  transition: all 0.2s;
 }
 
+.edit-chat-btn:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.edit-chat-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
 .chat-url-input-wrapper {
   display: flex;
   flex-direction: column;
@@ -680,6 +719,7 @@ textarea::placeholder {
   font-weight: 600;
   cursor: pointer;
 }
+
 .collapsible-automation {
   background: var(--surface);
   border: 1px solid var(--border);

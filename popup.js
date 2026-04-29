@@ -307,9 +307,18 @@ async function initDailyNotes() {
   const clearBtn = document.getElementById('clearNotesBtn');
   const status = document.getElementById('status');
 
+  // Auto-resize textarea
+  const autoResize = () => {
+    notesArea.style.height = 'auto';
+    notesArea.style.height = (notesArea.scrollHeight) + 'px';
+  };
+
   // Load existing notes
   const { dailyNotes } = await chrome.storage.local.get('dailyNotes');
-  if (dailyNotes) notesArea.value = dailyNotes;
+  if (dailyNotes) {
+    notesArea.value = dailyNotes;
+    autoResize();
+  }
 
   // Auto-save with debounce
   const saveNotes = debounce(async (text) => {
@@ -318,6 +327,7 @@ async function initDailyNotes() {
   }, 750);
 
   notesArea.addEventListener('input', () => {
+    autoResize();
     saveNotes(notesArea.value);
   });
 
@@ -334,6 +344,7 @@ async function initDailyNotes() {
   clearBtn.addEventListener('click', async () => {
     if (confirm('Clear all daily notes?')) {
       notesArea.value = '';
+      autoResize();
       await chrome.storage.local.set({ dailyNotes: '' });
       status.textContent = 'Notes cleared.';
       status.className = 'success';
@@ -342,24 +353,43 @@ async function initDailyNotes() {
   });
 }
 
-// ================= AUTOMATION COLLAPSE =================
-async function initAutomationCollapse() {
-  const toggle = document.getElementById('automationToggle');
-  const wrapper = toggle.parentElement;
-  const content = document.getElementById('automationContent');
+// ================= ACCORDION LOGIC =================
+async function initAccordion() {
+  const assistantToggle = document.getElementById('assistantToggle');
+  const assistantSection = document.getElementById('assistantSection');
+  const assistantContent = document.getElementById('assistantContent');
+  
+  const automationToggle = document.getElementById('automationToggle');
+  const automationSection = automationToggle.parentElement;
+  const automationContent = document.getElementById('automationContent');
 
-  // Load saved state
-  const { automationCollapsed } = await chrome.storage.local.get('automationCollapsed');
-  if (automationCollapsed) {
-    wrapper.classList.add('collapsed');
-    content.classList.add('hidden');
-  }
+  const toggleSection = (expandSection, collapseSection, expandContent, collapseContent) => {
+    expandSection.classList.remove('collapsed');
+    expandContent.classList.remove('hidden');
+    
+    collapseSection.classList.add('collapsed');
+    collapseContent.classList.add('hidden');
+  };
 
-  toggle.addEventListener('click', async () => {
-    const isCollapsed = wrapper.classList.toggle('collapsed');
-    content.classList.toggle('hidden');
-    await chrome.storage.local.set({ automationCollapsed: isCollapsed });
+  assistantToggle.addEventListener('click', () => {
+    if (assistantSection.classList.contains('collapsed')) {
+      toggleSection(assistantSection, automationSection, assistantContent, automationContent);
+    }
   });
+
+  automationToggle.addEventListener('click', () => {
+    if (automationSection.classList.contains('collapsed')) {
+      toggleSection(automationSection, assistantSection, automationContent, assistantContent);
+    }
+  });
+
+  // Initial State: Expand Assistant by default unless automation is active
+  const state = await chrome.storage.local.get(['isActive']);
+  if (state.isActive) {
+    toggleSection(automationSection, assistantSection, automationContent, assistantContent);
+  } else {
+    toggleSection(assistantSection, automationSection, assistantContent, automationContent);
+  }
 }
 
 // ================= CHAT HELPER =================
@@ -464,12 +494,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initDateClear();
   initChatHelper();
   initDailyNotes();
-  initAutomationCollapse();
+  initAccordion();
 
   document.getElementById('startButton').addEventListener('click', startAutomation);
   document.getElementById('resetButton').addEventListener('click', resetProgress);
-  document.getElementById('automationToggle').parentElement.classList.add('collapsed'); // Default collapsed
-  document.getElementById('automationContent').classList.add('hidden');
 
   // Check for existing progress
   chrome.storage.local.get(['automationData', 'currentIndex', 'isActive'], (state) => {
@@ -478,13 +506,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const done = state.currentIndex || 0;
       const left = total - done;
       updateStats(total, left, done);
-
-      if (state.isActive) {
-        // Expand if active
-        document.getElementById('automationToggle').parentElement.classList.remove('collapsed');
-        document.getElementById('automationContent').classList.remove('hidden');
-        pollProgress();
-      }
     }
   });
 });
