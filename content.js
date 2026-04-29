@@ -17,8 +17,8 @@ function realClick(el) {
         cancelable: true,
         view: window,
         buttons: 1,
-      })
-    )
+      }),
+    ),
   );
 }
 
@@ -83,14 +83,12 @@ async function handleDropdown(container, value) {
     }
 
     // 🎯 Exact match FIRST
-    let target = Array.from(options).find(
-      (o) => o.innerText.trim() === value
-    );
+    let target = Array.from(options).find((o) => o.innerText.trim() === value);
 
     // fallback (safe)
     if (!target) {
       target = Array.from(options).find((o) =>
-        o.innerText.toLowerCase().includes(value.toLowerCase())
+        o.innerText.toLowerCase().includes(value.toLowerCase()),
       );
     }
 
@@ -152,7 +150,7 @@ async function runAutomation() {
     "currentIndex",
     "isActive",
     "originalUrl",
-    "customDate"
+    "customDate",
   ]);
 
   if (
@@ -169,7 +167,7 @@ async function runAutomation() {
   // Handle submission page
   if (window.location.href.includes("/formResponse")) {
     const another = Array.from(document.querySelectorAll("a")).find((a) =>
-      a.innerText.toLowerCase().includes("submit another")
+      a.innerText.toLowerCase().includes("submit another"),
     );
 
     if (another) {
@@ -188,10 +186,8 @@ async function runAutomation() {
 
   // Email checkbox
   const email = Array.from(
-    document.querySelectorAll('div[role="checkbox"]')
-  ).find((d) =>
-    d.getAttribute("aria-label")?.toLowerCase().includes("record")
-  );
+    document.querySelectorAll('div[role="checkbox"]'),
+  ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("record"));
 
   if (email && email.getAttribute("aria-checked") === "false") {
     realClick(email);
@@ -200,7 +196,8 @@ async function runAutomation() {
   // Date
   const dateInput = document.querySelector('input[type="date"]');
   if (dateInput) {
-    const targetDate = state.customDate || new Date().toISOString().split("T")[0];
+    const targetDate =
+      state.customDate || new Date().toISOString().split("T")[0];
     dateInput.value = targetDate;
     dateInput.dispatchEvent(new Event("input", { bubbles: true }));
     dateInput.dispatchEvent(new Event("change", { bubbles: true }));
@@ -247,10 +244,8 @@ async function runAutomation() {
 
   // Copy checkbox
   const copy = Array.from(
-    document.querySelectorAll('div[role="checkbox"]')
-  ).find((d) =>
-    d.getAttribute("aria-label")?.toLowerCase().includes("copy")
-  );
+    document.querySelectorAll('div[role="checkbox"]'),
+  ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("copy"));
 
   if (copy && copy.getAttribute("aria-checked") === "false") {
     realClick(copy);
@@ -259,9 +254,9 @@ async function runAutomation() {
   await delay(1000);
 
   // ================= SUBMIT =================
-  const submit = Array.from(
-    document.querySelectorAll('[role="button"]')
-  ).find((b) => b.innerText.toLowerCase().includes("submit"));
+  const submit = Array.from(document.querySelectorAll('[role="button"]')).find(
+    (b) => b.innerText.toLowerCase().includes("submit"),
+  );
 
   if (submit) {
     await chrome.storage.local.set({
