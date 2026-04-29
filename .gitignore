@@ -1,0 +1,89 @@
+# =========================
+# 🐍 Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# =========================
+# 🔐 Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# 🧠 IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# 🖥 OS Files
+# =========================
+.DS_Store
+Thumbs.db
+
+# =========================
+# 📦 Playwright / Browser
+# =========================
+# Playwright browsers (optional, but usually safe to ignore)
+playwright/.local-browsers/
+
+# Chrome user data (VERY IMPORTANT)
+# NEVER commit your real browser profile
+google-chrome/
+chrome-profile/
+user-data-dir/
+
+# =========================
+# 📝 Logs & Temp
+# =========================
+*.log
+logs/
+tmp/
+temp/
+
+# =========================
+# 📊 Generated Data (Optional)
+# =========================
+# If you save JSON entries
+*.json
+
+# BUT allow sample/test files if needed
+!sample.json
+
+# =========================
+# 🔑 Secrets / Keys
+# =========================
+*.pem
+*.key
+*.crt
+
+# =========================
+# 🧪 Testing / Cache
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# 📁 Misc
+# =========================
+*.bak
+*.old
+*.tmp
