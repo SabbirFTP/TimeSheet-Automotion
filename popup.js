@@ -342,6 +342,8 @@ async function initDailyNotes() {
   });
 
   clearBtn.addEventListener('click', async () => {
+    if (!notesArea.value.trim()) return; // Don't show alert if already empty
+
     if (confirm('Clear all daily notes?')) {
       notesArea.value = '';
       autoResize();
@@ -363,23 +365,33 @@ async function initAccordion() {
   const automationSection = automationToggle.parentElement;
   const automationContent = document.getElementById('automationContent');
 
-  const toggleSection = (expandSection, collapseSection, expandContent, collapseContent) => {
-    expandSection.classList.remove('collapsed');
-    expandContent.classList.remove('hidden');
-    
-    collapseSection.classList.add('collapsed');
-    collapseContent.classList.add('hidden');
+  const openSection = (section, content) => {
+    section.classList.remove('collapsed');
+    content.classList.remove('hidden');
+  };
+
+  const closeSection = (section, content) => {
+    section.classList.add('collapsed');
+    content.classList.add('hidden');
   };
 
   assistantToggle.addEventListener('click', () => {
-    if (assistantSection.classList.contains('collapsed')) {
-      toggleSection(assistantSection, automationSection, assistantContent, automationContent);
+    const isCollapsed = assistantSection.classList.contains('collapsed');
+    if (isCollapsed) {
+      openSection(assistantSection, assistantContent);
+      closeSection(automationSection, automationContent);
+    } else {
+      closeSection(assistantSection, assistantContent);
     }
   });
 
   automationToggle.addEventListener('click', () => {
-    if (automationSection.classList.contains('collapsed')) {
-      toggleSection(automationSection, assistantSection, automationContent, assistantContent);
+    const isCollapsed = automationSection.classList.contains('collapsed');
+    if (isCollapsed) {
+      openSection(automationSection, automationContent);
+      closeSection(assistantSection, assistantContent);
+    } else {
+      closeSection(automationSection, automationContent);
     }
   });
 

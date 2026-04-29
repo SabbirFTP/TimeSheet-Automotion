@@ -613,10 +613,10 @@ textarea::placeholder {
 #dailyNotes {
   height: auto;
   min-height: 80px;
-  max-height: 300px;
+  max-height: 250px; /* Reduced slightly for better fit */
   font-family: inherit;
   font-size: 13px;
-  overflow-y: hidden;
+  overflow-y: auto; /* Enable scrolling */
   line-height: 1.6;
   resize: none;
 }
