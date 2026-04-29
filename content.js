@@ -1,3 +1,7 @@
+// ================= CONFIG =================
+const EMPLOYEE_NAME = "Mr Monjel Morshed Sabbir";
+const EMPLOYEE_ID = "202503";
+
 // ================= UTIL =================
 async function delay(ms) {
   return new Promise((res) => setTimeout(res, ms));
@@ -18,9 +22,6 @@ function realClick(el) {
   );
 }
 
-const normalize = (str) =>
-  str?.toLowerCase().replace(/^mr\s+/i, "").trim();
-
 // ================= FIELD FINDER =================
 async function findField(labelText) {
   const elements = document.querySelectorAll('[role="listitem"]');
@@ -34,57 +35,84 @@ async function findField(labelText) {
   return null;
 }
 
-// ================= DROPDOWN (FIXED) =================
+// ================= DROPDOWN CONTROL =================
+let DROPDOWN_LOCK = false;
+
+async function waitForOptions() {
+  for (let i = 0; i < 20; i++) {
+    const options = document.querySelectorAll('[role="option"]');
+    if (options.length > 0) return options;
+    await delay(150);
+  }
+  return [];
+}
+
+async function waitForDropdownClose() {
+  for (let i = 0; i < 20; i++) {
+    const options = document.querySelectorAll('[role="option"]');
+    if (options.length === 0) return true;
+    await delay(150);
+  }
+  return false;
+}
+
 async function handleDropdown(container, value) {
-  const listbox = container.querySelector('[role="listbox"]');
-  if (!listbox) return false;
-
-  listbox.scrollIntoView({ block: "center" });
-  await delay(300);
-
-  realClick(listbox);
-
-  // Wait for dropdown options (dynamic)
-  let options = [];
-  for (let i = 0; i < 15; i++) {
-    options = Array.from(document.querySelectorAll('[role="option"]'));
-    if (options.length) break;
+  // 🔒 Prevent overlap
+  while (DROPDOWN_LOCK) {
     await delay(200);
   }
 
-  if (!options.length) {
-    console.log("❌ No dropdown options found");
-    return false;
-  }
+  DROPDOWN_LOCK = true;
 
-  // DEBUG (optional)
-  // options.forEach(o => console.log(">>", o.innerText));
+  try {
+    const listbox = container.querySelector('[role="listbox"]');
+    if (!listbox) return false;
 
-  // Try exact match first
-  let target = options.find(
-    (o) =>
-      normalize(o.innerText) === normalize(value)
-  );
+    listbox.scrollIntoView({ block: "center" });
+    await delay(300);
 
-  // Fallback: partial match
-  if (!target) {
-    target = options.find((o) =>
-      normalize(o.innerText).includes(normalize(value))
+    // Open dropdown
+    realClick(listbox);
+
+    // Wait for options
+    const options = await waitForOptions();
+
+    if (!options.length) {
+      console.log("❌ No options found");
+      return false;
+    }
+
+    // 🎯 Exact match FIRST
+    let target = Array.from(options).find(
+      (o) => o.innerText.trim() === value
     );
+
+    // fallback (safe)
+    if (!target) {
+      target = Array.from(options).find((o) =>
+        o.innerText.toLowerCase().includes(value.toLowerCase())
+      );
+    }
+
+    if (!target) {
+      console.log("❌ Option not found:", value);
+      return false;
+    }
+
+    target.scrollIntoView({ block: "center" });
+    await delay(200);
+
+    realClick(target);
+
+    // 🔥 WAIT UNTIL DROPDOWN FULLY CLOSES
+    await waitForDropdownClose();
+
+    await delay(400);
+
+    return true;
+  } finally {
+    DROPDOWN_LOCK = false;
   }
-
-  if (!target) {
-    console.log("❌ Option not found:", value);
-    return false;
-  }
-
-  target.scrollIntoView({ block: "center" });
-  await delay(200);
-
-  realClick(target);
-  await delay(500);
-
-  return true;
 }
 
 // ================= TEXT INPUT =================
@@ -154,6 +182,7 @@ async function runAutomation() {
   }
 
   const entry = state.automationData[state.currentIndex];
+
   await delay(1500);
 
   // Email checkbox
@@ -174,33 +203,39 @@ async function runAutomation() {
     dateInput.dispatchEvent(new Event("input", { bubbles: true }));
   }
 
-  // Dropdowns
+  // ================= DROPDOWN FLOW (FIXED) =================
+
+  // Step 1: Name
   const nameField = await findField("Employee Name");
   if (nameField) {
-    await handleDropdown(nameField, "Monjel Morshed Sabbir"); // smart normalized
+    const ok = await handleDropdown(nameField, EMPLOYEE_NAME);
+    if (!ok) return;
   }
 
-  await delay(500);
+  // 🔥 IMPORTANT: wait before next dropdown
+  await delay(800);
 
+  // Step 2: ID
   const idField = await findField("Employee ID");
   if (idField) {
-    await handleDropdown(idField, "202503");
+    const ok = await handleDropdown(idField, EMPLOYEE_ID);
+    if (!ok) return;
   }
 
-  await delay(500);
+  await delay(800);
 
-  // Text
+  // ================= TEXT =================
   const proj = await findField("Project");
   if (proj) fillText(proj, entry.project);
 
   const desc = await findField("Description");
   if (desc) fillText(desc, entry.description);
 
-  // Time
+  // ================= TIME =================
   await fillTime("Start Time", entry.start_time);
   await fillTime("End Time", entry.end_time);
 
-  // Rating (always 10)
+  // ================= RATING =================
   const rate = await findField("Self Rating");
   if (rate) {
     const r = rate.querySelector('div[role="radio"][aria-label="10"]');
@@ -220,7 +255,7 @@ async function runAutomation() {
 
   await delay(1000);
 
-  // Submit
+  // ================= SUBMIT =================
   const submit = Array.from(
     document.querySelectorAll('[role="button"]')
   ).find((b) => b.innerText.toLowerCase().includes("submit"));
