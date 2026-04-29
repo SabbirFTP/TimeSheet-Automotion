@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Google Form Auto-Submitter",
+  "version": "1.0",
+  "description": "Automates Google Form submissions from JSON input.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://docs.google.com/forms/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
