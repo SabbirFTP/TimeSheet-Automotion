@@ -8,12 +8,15 @@ from .utils import Logger
 def get_browser_context() -> Iterator[BrowserContext]:
     """Provides a persistent Playwright browser context using the local Chrome profile."""
     playwright = sync_playwright().start()
-    
-    Logger.info(f"Launching Chrome with profile: {Config.CHROME_PROFILE_PATH}")
+
+    # Construct the profile directory path
+    profile_dir = f"{Config.CHROME_PROFILE_PATH}/Profile {Config.CHROME_PROFILE_NUMBER}"
+
+    Logger.info(f"Launching Chrome with profile: {profile_dir}")
     try:
         # We use launch_persistent_context to keep user sessions (like Google login) intact
         context = playwright.chromium.launch_persistent_context(
-            user_data_dir=Config.CHROME_PROFILE_PATH,
+            user_data_dir=profile_dir,
             headless=Config.HEADLESS_MODE,
             args=["--no-sandbox", "--disable-setuid-sandbox"]
         )
