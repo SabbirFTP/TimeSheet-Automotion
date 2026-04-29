@@ -379,6 +379,10 @@ async function initAccordion() {
     if (assistantSection.classList.contains('collapsed')) {
       openSection(assistantSection, assistantContent);
       closeSection(automationSection, automationContent);
+    } else {
+      // If already open, swap to the other one
+      closeSection(assistantSection, assistantContent);
+      openSection(automationSection, automationContent);
     }
   });
 
@@ -386,6 +390,10 @@ async function initAccordion() {
     if (automationSection.classList.contains('collapsed')) {
       openSection(automationSection, automationContent);
       closeSection(assistantSection, assistantContent);
+    } else {
+      // If already open, swap to the other one
+      closeSection(automationSection, automationContent);
+      openSection(assistantSection, assistantContent);
     }
   });
 
