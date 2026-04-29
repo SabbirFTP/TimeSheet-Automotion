@@ -287,12 +287,89 @@ async function resetProgress() {
   `;
 }
 
+// ================= CHAT HELPER =================
+async function initChatHelper() {
+  const container = document.getElementById('chatUrlContainer');
+  const { trainedChatUrl } = await chrome.storage.local.get('trainedChatUrl');
+
+  if (!trainedChatUrl) {
+    renderInsertState(container);
+  } else {
+    renderActiveState(container, trainedChatUrl);
+  }
+}
+
+function renderInsertState(container) {
+  container.innerHTML = `
+    <button class="insert-chat-btn" id="insertChatBtn">
+      <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Set AI Chat URL
+    </button>
+  `;
+
+  document.getElementById('insertChatBtn').addEventListener('click', () => {
+    renderInputState(container, '');
+  });
+}
+
+function renderInputState(container, existingUrl) {
+  container.innerHTML = `
+    <div class="chat-url-input-wrapper">
+      <input type="url" class="chat-input" id="chatUrlInput" placeholder="https://chatgpt.com/g/g-..." value="${existingUrl}">
+      <div class="chat-actions">
+        <button class="save-btn" id="saveChatBtn">Save URL</button>
+        <button class="cancel-btn" id="cancelChatBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  const input = document.getElementById('chatUrlInput');
+  input.focus();
+
+  document.getElementById('saveChatBtn').addEventListener('click', async () => {
+    const url = input.value.trim();
+    if (url) {
+      await chrome.storage.local.set({ trainedChatUrl: url });
+      initChatHelper();
+    }
+  });
+
+  document.getElementById('cancelChatBtn').addEventListener('click', () => {
+    initChatHelper();
+  });
+}
+
+function renderActiveState(container, url) {
+  container.innerHTML = `
+    <div class="chat-url-display-wrapper">
+      <button class="open-chat-btn" id="openChatBtn">
+        <span class="btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+        </span>
+        Open AI Chat
+      </button>
+      <button class="edit-chat-btn" id="editChatBtn" title="Edit URL">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    </div>
+  `;
+
+  document.getElementById('openChatBtn').addEventListener('click', () => {
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('editChatBtn').addEventListener('click', () => {
+    renderInputState(container, url);
+  });
+}
+
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initModals();
   initCopyButtons();
   initDateClear();
+  initChatHelper();
 
   document.getElementById('startButton').addEventListener('click', startAutomation);
   document.getElementById('resetButton').addEventListener('click', resetProgress);
