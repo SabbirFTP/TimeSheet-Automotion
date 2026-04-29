@@ -1,30 +1,45 @@
+"""Configuration management using environment variables."""
+
 import os
-import json
+from pathlib import Path
+from typing import Optional
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
-    FORM_URL = os.getenv("FORM_URL")
-    CHROME_PROFILE_PATH = os.getenv("CHROME_PROFILE_PATH")
-    MAX_RETRIES = int(os.getenv("MAX_RETRIES", 2))
-    MIN_DELAY = float(os.getenv("MIN_DELAY", 2.0))
-    MAX_DELAY = float(os.getenv("MAX_DELAY", 5.0))
-    HEADLESS_MODE = os.getenv("HEADLESS_MODE", "False").lower() in ("true", "1", "t")
+    """Application configuration loaded from environment variables."""
+
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    CHROME_PROFILE_PATH: str = os.getenv("CHROME_PROFILE_PATH", "")
+    FORM_URL: str = os.getenv("FORM_URL", "")
+
+    # Fixed dropdown values
+    EMPLOYEE_NAME: str = "Mr Monjel Morshed Sabbir"
+    EMPLOYEE_ID: str = "202503"
+
+    # Work hours
+    WORK_START: str = "10:00"
+    WORK_END: str = "19:00"
+    LUNCH_START: str = "13:30"
+    LUNCH_END: str = "14:30"
+
+    # Retry settings
+    MAX_RETRIES: int = 3
+    MIN_DELAY: float = 2.0
+    MAX_DELAY: float = 6.0
 
     @classmethod
-    def load_selectors(cls, path: str = "selectors.json") -> dict:
-        try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Selectors file not found: {path}")
-        except json.JSONDecodeError:
-            raise ValueError(f"Invalid JSON format in selectors file: {path}")
-
-    @classmethod
-    def validate(cls):
-        if not cls.FORM_URL:
-            raise ValueError("FORM_URL is not set in the environment.")
+    def validate(cls) -> bool:
+        """Validate that all required config values are present."""
+        if not cls.GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY is required in .env")
         if not cls.CHROME_PROFILE_PATH:
-            raise ValueError("CHROME_PROFILE_PATH is not set in the environment.")
+            raise ValueError("CHROME_PROFILE_PATH is required in .env")
+        if not cls.FORM_URL:
+            raise ValueError("FORM_URL is required in .env")
+        if not Path(cls.CHROME_PROFILE_PATH).exists():
+            raise ValueError(f"Chrome profile path does not exist: {cls.CHROME_PROFILE_PATH}")
+        return True

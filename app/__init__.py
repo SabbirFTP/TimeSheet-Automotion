@@ -1,1 +1,3 @@
-# Initialize app package
+"""Timesheet Bot Application Package."""
+
+__version__ = "1.0.0"

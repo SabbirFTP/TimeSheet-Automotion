@@ -1,47 +1,50 @@
+"""Entry loader for parsing JSON input."""
+
 import json
-import sys
 from typing import List
-from pydantic import ValidationError
-from .models import Entry
-from .utils import Logger
 
-def load_entries(source: str = None) -> List[Entry]:
-    """Loads JSON data from a file path, piped input, or manual terminal input."""
-    raw_data = ""
-    
-    if source:
-        # Load from file
-        try:
-            with open(source, "r", encoding="utf-8") as f:
-                raw_data = f.read()
-        except FileNotFoundError:
-            Logger.error(f"File not found: {source}")
-            sys.exit(1)
-    elif not sys.stdin.isatty():
-        # Load from piped input
-        raw_data = sys.stdin.read()
-    else:
-        # Load from manual paste
-        Logger.info("Paste your JSON array below (Press Ctrl+D on a new line to finish):")
-        raw_data = sys.stdin.read()
+from timesheet_bot.app.models import Entry
 
+
+def load_entries_from_json(json_string: str) -> List[Entry]:
+    """
+    Parse timesheet entries from JSON string.
+
+    Args:
+        json_string: JSON string containing array of entries
+
+    Returns:
+        List of Entry objects
+
+    Raises:
+        ValueError: If JSON is invalid or format is incorrect
+    """
     try:
-        json_data = json.loads(raw_data)
-        if not isinstance(json_data, list):
-            Logger.error("Input JSON must be an array of objects.")
-            sys.exit(1)
-            
-        entries = []
-        for i, item in enumerate(json_data):
-            try:
-                entries.append(Entry(**item))
-            except ValidationError as e:
-                Logger.error(f"Validation error in entry {i + 1}:\n{e}")
-                sys.exit(1)
-                
-        Logger.info(f"Parsed {len(entries)} valid entries.")
-        return entries
-        
+        data = json.loads(json_string)
     except json.JSONDecodeError as e:
-        Logger.error(f"Invalid JSON format:\n{e}")
-        sys.exit(1)
+        raise ValueError(f"Invalid JSON: {e}")
+
+    if not isinstance(data, list):
+        raise ValueError("Expected JSON array of entries")
+
+    entries = []
+    for i, item in enumerate(data, 1):
+        if not isinstance(item, dict):
+            raise ValueError(f"Entry {i} must be an object")
+
+        required_fields = ["project", "description", "start_time", "end_time", "notes"]
+        for field in required_fields:
+            if field not in item:
+                raise ValueError(f"Entry {i} missing required field: {field}")
+
+        entry = Entry(
+            project=item["project"],
+            description=item["description"],
+            start_time=item["start_time"],
+            end_time=item["end_time"],
+            notes=item["notes"],
+            rating=item.get("rating", 10),
+        )
+        entries.append(entry)
+
+    return entries
