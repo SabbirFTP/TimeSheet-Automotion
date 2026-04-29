@@ -213,13 +213,37 @@ Your goal is to convert them into a structured JSON array for my timesheet autom
 CRITICAL RULES:
 1. Format: Array of objects with keys: "project", "description", "start_time", "end_time".
 2. Time Window: Distribute tasks between 10:00 and 19:00.
-3. Lunch Break: Do NOT schedule any tasks between 14:00 and 15:00.
+3. Lunch Break: Do NOT schedule any tasks between 13:30 and 14:30.
 4. Duration: No single task should exceed 2 hours. Split long tasks into sub-tasks if needed.
 5. Continuity: The end time of one task should be the start time of the next.
-6. Return ONLY the raw JSON code block, no extra text.
+6. Keep the description described as much as possible.
+7. Return ONLY the raw JSON code block, no extra text.
 
-RAW DATA:
-[PASTE YOUR NOTES HERE e.g., "Finished API integration and fixed login bug (4 hours), wrote documentation (1 hour)"]</code>
+Response Sample:
+[
+  {
+    "project": "API Integration",
+    "description": "Fixed login bug and implemented OAuth",
+    "start_time": "10:00",
+    "end_time": "12:00"
+  },
+  {
+    "project": "Documentation",
+    "description": "Updated API docs and README",
+    "start_time": "12:00",
+    "end_time": "13:00"
+  },
+  {
+    "project": "Testing",
+    "description": "Wrote unit tests for auth module",
+    "start_time": "15:00",
+    "end_time": "17:00"
+  }
+]
+
+Are you ready to go?
+
+</code>
           <button class="copy-btn" id="copyPromptBtn" title="Copy Prompt">
             <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
             <span>Copy</span>
