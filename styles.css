@@ -537,21 +537,66 @@ textarea::placeholder {
   fill: currentColor;
 }
 
-/* ================= CHAT HELPER ================= */
-.chat-helper-section {
+/* ================= ASSISTANT SECTION ================= */
+.assistant-section {
   background: var(--surface-glass);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 16px;
-  margin-top: 4px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-md);
 }
 
-.chat-helper-section:hover {
-  box-shadow: var(--shadow-md);
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.toolbar-btn {
+  width: 28px;
+  height: 28px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.toolbar-btn:hover {
+  background: var(--surface-raised);
+  color: var(--accent);
   border-color: var(--accent);
+}
+
+.toolbar-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+}
+
+#dailyNotes {
+  height: 100px;
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.chat-helper-compact {
+  border-top: 1px solid var(--border-light);
+  padding-top: 12px;
 }
 
 .chat-url-display-wrapper {
@@ -560,178 +605,158 @@ textarea::placeholder {
   align-items: center;
 }
 
-.chat-url-input-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  animation: slideDown 0.2s ease-out;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.chat-input {
-  background: var(--surface);
-  color: var(--text-primary);
-  padding: 12px;
-  border: 2px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  width: 100%;
-  transition: all 0.2s;
-}
-
-.chat-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-}
-
-.chat-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.save-btn {
-  background: var(--accent-gradient);
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  flex: 1;
-}
-
-.cancel-btn {
-  background: var(--surface-raised);
-  color: var(--text-secondary);
-  border: 1px solid var(--border);
-  padding: 10px 16px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-}
-
 .open-chat-btn {
   flex: 1;
   background: var(--accent-gradient);
   color: white;
   border: none;
-  padding: 12px;
+  padding: 10px;
   border-radius: var(--radius-md);
   font-weight: 700;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s;
 }
 
-.open-chat-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  filter: brightness(1.1);
-}
-
-.edit-chat-btn {
-  width: 44px;
-  height: 44px;
-  background: var(--surface-raised);
+.edit-chat-btn, .toolbar-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
-  transition: all 0.2s;
 }
 
-.edit-chat-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--surface);
-}
-
-.edit-chat-btn svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-.btn-icon-small {
+.chat-url-input-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.btn-icon-small svg {
-  width: 14px;
-  height: 14px;
-  fill: currentColor;
-}
-
-.remove-btn {
-  background: var(--status-error-bg);
-  color: var(--status-error);
-  border: 1px solid var(--status-error);
-  padding: 10px 16px;
+.chat-input {
+  background: var(--surface);
+  color: var(--text-primary);
+  padding: 10px;
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s;
+  font-size: 12px;
+  width: 100%;
 }
 
-.remove-btn:hover {
-  background: var(--status-error);
-  color: white;
+.chat-actions {
+  display: flex;
+  gap: 6px;
 }
+
+.save-btn, .remove-btn, .cancel-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.save-btn { background: var(--accent-gradient); color: white; }
+.remove-btn { background: var(--status-error-bg); color: var(--status-error); border-color: var(--status-error); }
+.cancel-btn { background: var(--surface-raised); color: var(--text-secondary); border-color: var(--border); }
 
 .insert-chat-btn {
   width: 100%;
+  padding: 10px;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.collapsible-automation {
   background: var(--surface);
   border: 1px solid var(--border);
-  color: var(--text-secondary);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  font-size: 13px;
-  cursor: pointer;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.collapse-toggle {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--surface-raised);
+  border: none;
+  border-bottom: 1px solid transparent;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-primary);
   transition: all 0.2s;
-  box-shadow: var(--shadow-sm);
 }
 
-.insert-chat-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--surface-raised);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+.collapse-toggle:hover {
+  background: var(--bg);
 }
 
-/* ================= STATUS ================= */
+.collapsible-automation:not(.collapsed) .collapse-toggle {
+  border-bottom-color: var(--border);
+}
+
+.toggle-icon {
+  transition: transform 0.3s;
+}
+
+.collapsible-automation.collapsed .toggle-icon {
+  transform: rotate(-90deg);
+}
+
+.automation-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  transition: all 0.3s;
+}
+
+.automation-content.hidden {
+  display: none;
+}
+
+.secondary-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.secondary-actions .outline-btn,
+.secondary-actions .prompt-trainer-btn {
+  flex: 1;
+}
+
+/* ================= STATUS (TOP) ================= */
 #status {
   font-size: 13px;
   font-weight: 600;
   text-align: center;
-  padding: 14px;
+  padding: 10px;
   border-radius: var(--radius-md);
-  margin-top: 4px;
+  margin-bottom: -10px;
   min-height: 20px;
   transition: all 0.3s;
+  display: none;
+}
+
+#status:not(:empty) {
+  display: block;
 }
 
 .error {
@@ -744,6 +769,24 @@ textarea::placeholder {
   background: var(--status-success-bg);
   color: var(--status-success);
   border: 1px solid var(--status-success);
+}
+
+/* ================= COMPONENT TWEAKS ================= */
+.stats-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.stat-card {
+  padding: 10px 8px;
+}
+
+.stat-value {
+  font-size: 20px;
+}
+
+.primary-btn {
+  padding: 12px;
 }
 
 /* ================= CREDIT SECTION ================= */

@@ -12,7 +12,7 @@
         <div class="logo-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
-        <h1>Form Automator</h1>
+        <h1>FormAuto</h1>
       </div>
       <div class="header-actions">
         <button class="icon-btn" id="infoBtn" title="About & Help">
@@ -20,7 +20,7 @@
         </button>
         <div class="theme-toggle">
           <button class="theme-btn" id="theme-light" title="Light Mode">
-            <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37a.996.996 0 00-1.41-1.41l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 00-1.41-1.41l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s-.45-1-1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37a.996.996 0 00-1.41 0 .996.996 0 000 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-12.37a.996.996 0 00-1.41-1.41l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06zM7.05 18.36a.996.996 0 00-1.41-1.41l-1.06 1.06a.996.996 0 000 1.41c.39.39 1.03.39 1.41 0l1.06-1.06z"/></svg>
           </button>
           <button class="theme-btn" id="theme-dark" title="Dark Mode">
             <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z"/></svg>
@@ -32,102 +32,93 @@
       </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="stats-grid" id="statsGrid" style="display: none;">
-      <div class="stat-card">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-        </div>
-        <span class="stat-label">Total</span>
-        <span class="stat-value" id="totalTasks">0</span>
-      </div>
-      <div class="stat-card highlight">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        </div>
-        <span class="stat-label">Left</span>
-        <span class="stat-value" id="leftTasks">0</span>
-      </div>
-      <div class="stat-card success">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-        </div>
-        <span class="stat-label">Done</span>
-        <span class="stat-value" id="doneTasks">0</span>
-      </div>
-    </div>
-
-    <!-- Date Input -->
-    <div class="input-group">
-      <label for="submitDate">
-        <span class="label-icon">
-          <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-        </span>
-        Submission Date
-        <span class="label-badge">Optional</span>
-      </label>
-      <div class="date-input-wrapper">
-        <input type="date" id="submitDate">
-        <button class="date-clear-btn" id="dateClearBtn" title="Clear Date">
-          <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
-      </div>
-      <small>Defaults to current date if empty</small>
-    </div>
-
-    <!-- JSON Input -->
-    <div class="input-group">
-      <label for="jsonInput">
-        <span class="label-icon">
-          <svg viewBox="0 0 24 24"><path d="M5 3h14c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2zm0 2v14h14V5H5zm7 12h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-        </span>
-        JSON Tasks Array
-      </label>
-      <textarea id="jsonInput" placeholder='[{"project": "...", "description": "...", "start_time": "...", "end_time": "..."}]'></textarea>
-    </div>
-
-    <!-- Action Buttons -->
-    <div class="button-group">
-      <button id="startButton" class="primary-btn">
-        <span class="btn-icon">
-          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </span>
-        Start Automation
-      </button>
-      <button id="resetButton" class="outline-btn">
-        <span class="btn-icon">
-          <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-        </span>
-        Reset Progress
-      </button>
-    </div>
-
-    <!-- Prompt Trainer Button -->
-    <button id="promptTrainerBtn" class="prompt-trainer-btn">
-      <span class="btn-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-      </span>
-      AI Prompt Trainer
-    </button>
-
-    <!-- Chat Helper Section -->
-    <div class="chat-helper-section">
-      <div class="input-group">
-        <label>
-          <span class="label-icon">
-            <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-          </span>
-          AI Chat Helper
-          <span class="label-badge">Trained Model</span>
-        </label>
-        <div id="chatUrlContainer">
-          <!-- Dynamic Content -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Status -->
+    <!-- Status (Top) -->
     <div id="status"></div>
+
+    <!-- Work Assistant Section -->
+    <div class="assistant-section">
+      <div class="input-group">
+        <div class="label-row">
+          <label>
+            <span class="label-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 18h12v-2H3v2zM3 6v2h18V6H3zm0 7h18v-2H3v2z"/></svg>
+            </span>
+            Daily Preparation Notes
+          </label>
+          <div class="toolbar-actions">
+            <button class="toolbar-btn" id="copyNotesBtn" title="Copy Notes">
+              <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+            </button>
+            <button class="toolbar-btn" id="clearNotesBtn" title="Clear Notes">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+        <textarea id="dailyNotes" placeholder="Draft your tasks here... Auto-saves as you type."></textarea>
+      </div>
+      
+      <!-- AI Chat Integrated -->
+      <div id="chatUrlContainer" class="chat-helper-compact">
+        <!-- Dynamic Content -->
+      </div>
+    </div>
+
+    <!-- Collapsible Automation Section -->
+    <div class="collapsible-automation">
+      <button class="collapse-toggle" id="automationToggle">
+        <span class="toggle-icon">
+          <svg viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z"/></svg>
+        </span>
+        Form Submission Tools
+      </button>
+      
+      <div class="automation-content hidden" id="automationContent">
+        <!-- Stats Grid -->
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card">
+            <span class="stat-label">Total</span>
+            <span class="stat-value" id="totalTasks">0</span>
+          </div>
+          <div class="stat-card highlight">
+            <span class="stat-label">Left</span>
+            <span class="stat-value" id="leftTasks">0</span>
+          </div>
+          <div class="stat-card success">
+            <span class="stat-label">Done</span>
+            <span class="stat-value" id="doneTasks">0</span>
+          </div>
+        </div>
+
+        <!-- Date Input -->
+        <div class="input-group">
+          <label for="submitDate">
+            Submission Date
+            <span class="label-badge">Optional</span>
+          </label>
+          <div class="date-input-wrapper">
+            <input type="date" id="submitDate">
+            <button class="date-clear-btn" id="dateClearBtn">
+              <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- JSON Input -->
+        <div class="input-group">
+          <label for="jsonInput">JSON Tasks Array</label>
+          <textarea id="jsonInput" placeholder='[{"project": "...", ...}]'></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+          <button id="startButton" class="primary-btn">Start Automation</button>
+          <div class="secondary-actions">
+            <button id="resetButton" class="outline-btn">Reset</button>
+            <button id="promptTrainerBtn" class="prompt-trainer-btn">AI Prompt</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Credit Section -->
     <div class="credit-section">
@@ -169,7 +160,7 @@
           <h3>Work Hours</h3>
           <ul>
             <li>Standard: 10:00 to 19:00</li>
-            <li>Lunch Break: 14:00 to 15:00 (skipped)</li>
+            <li>Lunch Break: 13:30 to 14:30 (skipped)</li>
             <li>Max task duration: 2 hours</li>
           </ul>
         </div>
@@ -181,7 +172,8 @@
     "project": "API Integration",
     "description": "Fixed login bug and implemented OAuth",
     "start_time": "10:00",
-    "end_time": "12:00"
+    "end_time": "12:00",
+    "notes": "Used React and Tailwind."
   },
   {
     "project": "Documentation",
@@ -241,7 +233,8 @@ Response Sample:
     "project": "API Integration",
     "description": "Fixed login bug and implemented OAuth",
     "start_time": "10:00",
-    "end_time": "12:00"
+    "end_time": "12:00",
+    "notes": "Used React and Tailwind."
   },
   {
     "project": "Documentation",

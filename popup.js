@@ -287,6 +287,81 @@ async function resetProgress() {
   `;
 }
 
+// ================= UTILS =================
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
+// ================= DAILY NOTES =================
+async function initDailyNotes() {
+  const notesArea = document.getElementById('dailyNotes');
+  const copyBtn = document.getElementById('copyNotesBtn');
+  const clearBtn = document.getElementById('clearNotesBtn');
+  const status = document.getElementById('status');
+
+  // Load existing notes
+  const { dailyNotes } = await chrome.storage.local.get('dailyNotes');
+  if (dailyNotes) notesArea.value = dailyNotes;
+
+  // Auto-save with debounce
+  const saveNotes = debounce(async (text) => {
+    await chrome.storage.local.set({ dailyNotes: text });
+    console.log('Notes auto-saved');
+  }, 750);
+
+  notesArea.addEventListener('input', () => {
+    saveNotes(notesArea.value);
+  });
+
+  // Toolbar Actions
+  copyBtn.addEventListener('click', async () => {
+    if (notesArea.value) {
+      await navigator.clipboard.writeText(notesArea.value);
+      status.textContent = 'Notes copied to clipboard!';
+      status.className = 'success';
+      setTimeout(() => status.textContent = '', 2000);
+    }
+  });
+
+  clearBtn.addEventListener('click', async () => {
+    if (confirm('Clear all daily notes?')) {
+      notesArea.value = '';
+      await chrome.storage.local.set({ dailyNotes: '' });
+      status.textContent = 'Notes cleared.';
+      status.className = 'success';
+      setTimeout(() => status.textContent = '', 2000);
+    }
+  });
+}
+
+// ================= AUTOMATION COLLAPSE =================
+async function initAutomationCollapse() {
+  const toggle = document.getElementById('automationToggle');
+  const wrapper = toggle.parentElement;
+  const content = document.getElementById('automationContent');
+
+  // Load saved state
+  const { automationCollapsed } = await chrome.storage.local.get('automationCollapsed');
+  if (automationCollapsed) {
+    wrapper.classList.add('collapsed');
+    content.classList.add('hidden');
+  }
+
+  toggle.addEventListener('click', async () => {
+    const isCollapsed = wrapper.classList.toggle('collapsed');
+    content.classList.toggle('hidden');
+    await chrome.storage.local.set({ automationCollapsed: isCollapsed });
+  });
+}
+
 // ================= CHAT HELPER =================
 async function initChatHelper() {
   const container = document.getElementById('chatUrlContainer');
@@ -302,9 +377,6 @@ async function initChatHelper() {
 function renderInsertState(container) {
   container.innerHTML = `
     <button class="insert-chat-btn" id="insertChatBtn">
-      <span class="btn-icon-small">
-        <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-      </span>
       Configure AI Chat URL
     </button>
   `;
@@ -318,9 +390,9 @@ function renderInputState(container, existingUrl) {
   const isEditing = existingUrl !== '';
   container.innerHTML = `
     <div class="chat-url-input-wrapper">
-      <input type="url" class="chat-input" id="chatUrlInput" placeholder="https://chatgpt.com/g/g-..." value="${existingUrl}">
+      <input type="url" class="chat-input" id="chatUrlInput" placeholder="Paste trained AI chat URL..." value="${existingUrl}">
       <div class="chat-actions">
-        <button class="save-btn" id="saveChatBtn">${isEditing ? 'Update' : 'Save'} URL</button>
+        <button class="save-btn" id="saveChatBtn">${isEditing ? 'Update' : 'Save'}</button>
         ${isEditing ? '<button class="remove-btn" id="removeChatBtn">Remove</button>' : ''}
         <button class="cancel-btn" id="cancelChatBtn">Cancel</button>
       </div>
@@ -333,35 +405,25 @@ function renderInputState(container, existingUrl) {
   document.getElementById('saveChatBtn').addEventListener('click', async () => {
     const url = input.value.trim();
     const status = document.getElementById('status');
-    
-    // URL Regex validation
     const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     
-    if (!url) {
-      status.textContent = 'Please enter a URL';
-      status.className = 'error';
-      return;
-    }
-
     if (!urlRegex.test(url)) {
-      status.textContent = 'Please enter a valid URL (e.g., https://chatgpt.com)';
+      status.textContent = 'Please enter a valid URL';
       status.className = 'error';
-      input.focus();
       return;
     }
 
-    // Ensure protocol exists
     const finalUrl = url.startsWith('http') ? url : `https://${url}`;
-    
     await chrome.storage.local.set({ trainedChatUrl: finalUrl });
-    status.textContent = 'Chat URL saved successfully!';
+    status.textContent = 'URL Saved!';
     status.className = 'success';
     initChatHelper();
+    setTimeout(() => status.textContent = '', 2000);
   });
 
   if (isEditing) {
     document.getElementById('removeChatBtn').addEventListener('click', async () => {
-      if (confirm('Are you sure you want to remove the Chat URL?')) {
+      if (confirm('Remove Chat URL?')) {
         await chrome.storage.local.remove('trainedChatUrl');
         initChatHelper();
       }
@@ -377,10 +439,7 @@ function renderActiveState(container, url) {
   container.innerHTML = `
     <div class="chat-url-display-wrapper">
       <button class="open-chat-btn" id="openChatBtn">
-        <span class="btn-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
-        </span>
-        Open AI Chat
+        Open Trained AI Chat
       </button>
       <button class="edit-chat-btn" id="editChatBtn" title="Edit URL">
         <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
@@ -404,9 +463,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopyButtons();
   initDateClear();
   initChatHelper();
+  initDailyNotes();
+  initAutomationCollapse();
 
   document.getElementById('startButton').addEventListener('click', startAutomation);
   document.getElementById('resetButton').addEventListener('click', resetProgress);
+  document.getElementById('automationToggle').parentElement.classList.add('collapsed'); // Default collapsed
+  document.getElementById('automationContent').classList.add('hidden');
 
   // Check for existing progress
   chrome.storage.local.get(['automationData', 'currentIndex', 'isActive'], (state) => {
@@ -417,21 +480,19 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStats(total, left, done);
 
       if (state.isActive) {
+        // Expand if active
+        document.getElementById('automationToggle').parentElement.classList.remove('collapsed');
+        document.getElementById('automationContent').classList.remove('hidden');
         pollProgress();
       }
     }
   });
 });
 
-// Add spinning animation for loading state
+// Animations
 const style = document.createElement('style');
 style.textContent = `
-  .spinning {
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
+  .spinning { animation: spin 1s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
 document.head.appendChild(style);
