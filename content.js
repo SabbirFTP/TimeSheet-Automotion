@@ -152,6 +152,7 @@ async function runAutomation() {
     "currentIndex",
     "isActive",
     "originalUrl",
+    "customDate"
   ]);
 
   if (
@@ -199,8 +200,10 @@ async function runAutomation() {
   // Date
   const dateInput = document.querySelector('input[type="date"]');
   if (dateInput) {
-    dateInput.value = new Date().toISOString().split("T")[0];
+    const targetDate = state.customDate || new Date().toISOString().split("T")[0];
+    dateInput.value = targetDate;
     dateInput.dispatchEvent(new Event("input", { bubbles: true }));
+    dateInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   // ================= DROPDOWN FLOW (FIXED) =================

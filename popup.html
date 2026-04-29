@@ -7,9 +7,35 @@
 <body>
   <div class="container">
     <h1>Form Automator</h1>
-    <p>Paste JSON entries array:</p>
-    <textarea id="jsonInput" placeholder='[{"project": "...", "description": "...", "start_time": "...", "end_time": "..."}]'></textarea>
+    
+    <div class="stats-grid" id="statsGrid" style="display: none;">
+      <div class="stat-card">
+        <span class="stat-label">Total</span>
+        <span class="stat-value" id="totalTasks">0</span>
+      </div>
+      <div class="stat-card highlight">
+        <span class="stat-label">Left</span>
+        <span class="stat-value" id="leftTasks">0</span>
+      </div>
+      <div class="stat-card success">
+        <span class="stat-label">Done</span>
+        <span class="stat-value" id="doneTasks">0</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="submitDate">Submission Date (Optional)</label>
+      <input type="date" id="submitDate">
+      <small>Defaults to current date if empty</small>
+    </div>
+
+    <div class="input-group">
+      <label for="jsonInput">JSON Tasks Array</label>
+      <textarea id="jsonInput" placeholder='[{"project": "...", "description": "...", "start_time": "...", "end_time": "..."}]'></textarea>
+    </div>
+
     <button id="startButton">Start Automation</button>
+    <button id="resetButton" class="outline">Reset Progress</button>
     <div id="status"></div>
   </div>
   <script src="popup.js"></script>
