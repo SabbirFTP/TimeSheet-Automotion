@@ -29,12 +29,14 @@ def main():
     failed = 0
 
     Logger.info(f"Starting submission process for {total} entries...")
+    Logger.info(f"Form URL: {Config.FORM_URL}")
 
     # Initialize browser and process entries
     try:
         with get_browser_context() as context:
-            # Create a new page
-            page = context.new_page()
+            # Use existing page if available (launch_persistent_context usually opens one)
+            page = context.pages[0] if context.pages else context.new_page()
+            Logger.info(f"Using browser tab. Initial URL: {page.url}")
             submitter = FormSubmitter(page, selectors)
 
             for i, entry in enumerate(entries, 1):

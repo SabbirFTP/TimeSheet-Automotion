@@ -30,10 +30,15 @@ class FormSubmitter:
     def _fill_and_submit(self, entry: Entry):
         """Navigates, fills the fields based on selectors mapping, and submits."""
         Logger.info(f"Navigating to form: {self.form_url}")
-        self.page.goto(self.form_url, wait_until="networkidle")
+        
+        # Ensure we are not on a blank page if it hangs
+        response = self.page.goto(self.form_url, wait_until="load", timeout=60000)
+        if not response or not response.ok:
+            Logger.info(f"Page URL after failed goto: {self.page.url}")
+            raise Exception("Form page failed to load or returned a non-success status.")
 
         # Give it a short delay to ensure JS is fully loaded
-        self.page.wait_for_timeout(1000)
+        self.page.wait_for_timeout(2000)
 
         # Fill Date field
         Logger.info(f"Filling date: {entry.date}")
