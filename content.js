@@ -39,19 +39,19 @@ async function findField(labelText) {
 let DROPDOWN_LOCK = false;
 
 async function waitForOptions() {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const options = document.querySelectorAll('[role="option"]');
     if (options.length > 0) return options;
-    await delay(150);
+    await delay(100);
   }
   return [];
 }
 
 async function waitForDropdownClose() {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 30; i++) {
     const options = document.querySelectorAll('[role="option"]');
     if (options.length === 0) return true;
-    await delay(150);
+    await delay(100);
   }
   return false;
 }
@@ -65,49 +65,135 @@ async function handleDropdown(container, value) {
   DROPDOWN_LOCK = true;
 
   try {
-    const listbox = container.querySelector('[role="listbox"]');
-    if (!listbox) return false;
+    // Find the dropdown trigger (listbox or input)
+    let listbox = container.querySelector('[role="listbox"]');
+    let input = container.querySelector('input[type="text"]');
 
-    listbox.scrollIntoView({ block: "center" });
+    // If no listbox found, try to find the clickable element
+    if (!listbox && !input) {
+      // Try to find any clickable element that might trigger dropdown
+      const clickable = container.querySelector('[role="combobox"], [aria-haspopup="listbox"]');
+      if (clickable) {
+        listbox = clickable;
+      } else {
+        // Last resort: click the container itself
+        listbox = container;
+      }
+    }
+
+    if (!listbox) {
+      console.log("❌ No dropdown element found");
+      return false;
+    }
+
+    // Scroll into view
+    listbox.scrollIntoView({ block: "center", behavior: "smooth" });
     await delay(300);
 
     // Open dropdown
     realClick(listbox);
+    await delay(200);
 
-    // Wait for options
+    // Wait for options to appear
     const options = await waitForOptions();
 
     if (!options.length) {
-      console.log("❌ No options found");
+      console.log("❌ No options found after opening dropdown");
       return false;
     }
 
-    // 🎯 Exact match FIRST
-    let target = Array.from(options).find((o) => o.innerText.trim() === value);
+    console.log(`📋 Found ${options.length} options, looking for: "${value}"`);
 
-    // fallback (safe)
+    // 🎯 Try multiple matching strategies
+    let target = null;
+
+    // Strategy 1: Exact match (case-sensitive)
+    target = Array.from(options).find((o) => o.innerText.trim() === value);
+    if (target) {
+      console.log("✅ Found exact match");
+    }
+
+    // Strategy 2: Case-insensitive exact match
     if (!target) {
       target = Array.from(options).find((o) =>
-        o.innerText.toLowerCase().includes(value.toLowerCase()),
+        o.innerText.trim().toLowerCase() === value.toLowerCase()
       );
+      if (target) {
+        console.log("✅ Found case-insensitive match");
+      }
+    }
+
+    // Strategy 3: Contains match (case-insensitive)
+    if (!target) {
+      target = Array.from(options).find((o) =>
+        o.innerText.toLowerCase().includes(value.toLowerCase())
+      );
+      if (target) {
+        console.log("✅ Found partial match");
+      }
+    }
+
+    // Strategy 4: Try matching with common variations
+    if (!target) {
+      const variations = [
+        value,
+        value.toLowerCase(),
+        value.toUpperCase(),
+        value.trim(),
+        value.replace(/\s+/g, ' '),
+      ];
+
+      for (const variation of variations) {
+        target = Array.from(options).find((o) =>
+          o.innerText.trim() === variation
+        );
+        if (target) break;
+      }
+      if (target) {
+        console.log("✅ Found variation match");
+      }
     }
 
     if (!target) {
       console.log("❌ Option not found:", value);
+      console.log("Available options:", Array.from(options).map(o => o.innerText.trim()));
       return false;
     }
 
-    target.scrollIntoView({ block: "center" });
+    // Scroll target into view
+    target.scrollIntoView({ block: "center", behavior: "smooth" });
     await delay(200);
 
+    // Click the option
+    console.log("🎯 Clicking option:", target.innerText.trim());
     realClick(target);
 
-    // 🔥 WAIT UNTIL DROPDOWN FULLY CLOSES
-    await waitForDropdownClose();
+    // Wait for dropdown to close
+    const closed = await waitForDropdownClose();
+
+    if (!closed) {
+      console.log("⚠️ Dropdown didn't close properly, clicking outside");
+      // Click outside to close
+      document.body.click();
+      await delay(200);
+    }
 
     await delay(400);
 
+    // Verify selection by checking the displayed value
+    if (input) {
+      const displayedValue = input.value || input.innerText;
+      if (displayedValue && displayedValue.toLowerCase().includes(value.toLowerCase().substring(0, 10))) {
+        console.log("✅ Selection verified");
+      } else {
+        console.log("⚠️ Selection may not have been applied correctly");
+      }
+    }
+
     return true;
+  } catch (error) {
+    console.error("❌ Error in handleDropdown:", error);
+    return false;
   } finally {
     DROPDOWN_LOCK = false;
   }
@@ -203,23 +289,39 @@ async function runAutomation() {
     dateInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
-  // ================= DROPDOWN FLOW (FIXED) =================
+  // ================= DROPDOWN FLOW (ENHANCED) =================
+
+  console.log("🔄 Starting dropdown selection...");
 
   // Step 1: Name
+  console.log("📝 Selecting Employee Name:", EMPLOYEE_NAME);
   const nameField = await findField("Employee Name");
   if (nameField) {
     const ok = await handleDropdown(nameField, EMPLOYEE_NAME);
-    if (!ok) return;
+    if (!ok) {
+      console.error("❌ Failed to select Employee Name");
+      return;
+    }
+    console.log("✅ Employee Name selected successfully");
+  } else {
+    console.error("❌ Employee Name field not found");
   }
 
   // 🔥 IMPORTANT: wait before next dropdown
-  await delay(800);
+  await delay(1000);
 
   // Step 2: ID
+  console.log("📝 Selecting Employee ID:", EMPLOYEE_ID);
   const idField = await findField("Employee ID");
   if (idField) {
     const ok = await handleDropdown(idField, EMPLOYEE_ID);
-    if (!ok) return;
+    if (!ok) {
+      console.error("❌ Failed to select Employee ID");
+      return;
+    }
+    console.log("✅ Employee ID selected successfully");
+  } else {
+    console.error("❌ Employee ID field not found");
   }
 
   await delay(800);

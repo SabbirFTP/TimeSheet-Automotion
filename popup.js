@@ -1,109 +1,326 @@
-/** Theme Management **/
-async function initTheme() {
-  const settings = await chrome.storage.local.get(['theme']);
-  const theme = settings.theme || 'system';
-  applyTheme(theme);
-}
+// ================= CONFIG =================
+const EMPLOYEE_NAME = "Mr Monjel Morshed Sabbir";
+const EMPLOYEE_ID = "202503";
 
-function applyTheme(theme) {
-  const root = document.documentElement;
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  
-  if (isDark) {
-    root.setAttribute('data-theme', 'dark');
-  } else {
-    root.removeAttribute('data-theme');
-  }
+// ================= THEME =================
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  setTheme(savedTheme);
 
-  // Update UI active state
   document.querySelectorAll('.theme-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.id === `theme-${theme}`);
+    btn.addEventListener('click', () => {
+      const theme = btn.id.replace('theme-', '');
+      setTheme(theme);
+    });
   });
 }
 
-// Theme Event Listeners
-['light', 'dark', 'system'].forEach(t => {
-  document.getElementById(`theme-${t}`).addEventListener('click', async () => {
-    await chrome.storage.local.set({ theme: t });
-    applyTheme(t);
+function setTheme(theme) {
+  localStorage.setItem('theme', theme);
+
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.remove('active');
   });
+
+  if (theme === 'system') {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    document.getElementById('theme-system').classList.add('active');
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.getElementById(`theme-${theme}`).classList.add('active');
+  }
+}
+
+// Listen for system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+  if (localStorage.getItem('theme') === 'system') {
+    document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+  }
 });
 
-/** Stats Update **/
-async function updateStats() {
-  const state = await chrome.storage.local.get(['automationData', 'currentIndex', 'isActive']);
+// ================= MODAL =================
+function initModals() {
+  const infoModal = document.getElementById('infoModal');
+  const promptModal = document.getElementById('promptModal');
+  const infoBtn = document.getElementById('infoBtn');
+  const promptTrainerBtn = document.getElementById('promptTrainerBtn');
+  const closeInfoModal = document.getElementById('closeInfoModal');
+  const closePromptModal = document.getElementById('closePromptModal');
+
+  infoBtn.addEventListener('click', () => {
+    infoModal.classList.add('active');
+  });
+
+  promptTrainerBtn.addEventListener('click', () => {
+    promptModal.classList.add('active');
+  });
+
+  closeInfoModal.addEventListener('click', () => {
+    infoModal.classList.remove('active');
+  });
+
+  closePromptModal.addEventListener('click', () => {
+    promptModal.classList.remove('active');
+  });
+
+  // Close on overlay click
+  infoModal.addEventListener('click', (e) => {
+    if (e.target === infoModal) {
+      infoModal.classList.remove('active');
+    }
+  });
+
+  promptModal.addEventListener('click', (e) => {
+    if (e.target === promptModal) {
+      promptModal.classList.remove('active');
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      infoModal.classList.remove('active');
+      promptModal.classList.remove('active');
+    }
+  });
+}
+
+// ================= COPY TO CLIPBOARD =================
+function initCopyButtons() {
+  const copySampleBtn = document.getElementById('copySampleBtn');
+  const copyPromptBtn = document.getElementById('copyPromptBtn');
+  const sampleData = document.getElementById('sampleData');
+  const promptText = document.getElementById('promptText');
+
+  copySampleBtn.addEventListener('click', async () => {
+    await copyToClipboard(sampleData.textContent, copySampleBtn);
+  });
+
+  copyPromptBtn.addEventListener('click', async () => {
+    await copyToClipboard(promptText.textContent, copyPromptBtn);
+  });
+}
+
+async function copyToClipboard(text, button) {
+  try {
+    await navigator.clipboard.writeText(text);
+    const originalText = button.innerHTML;
+    button.classList.add('copied');
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+      <span>Copied!</span>
+    `;
+
+    setTimeout(() => {
+      button.classList.remove('copied');
+      button.innerHTML = originalText;
+    }, 2000);
+  } catch (err) {
+    console.error('Failed to copy:', err);
+  }
+}
+
+// ================= DATE CLEAR =================
+function initDateClear() {
+  const dateInput = document.getElementById('submitDate');
+  const dateClearBtn = document.getElementById('dateClearBtn');
+
+  dateClearBtn.addEventListener('click', () => {
+    dateInput.value = '';
+    dateInput.focus();
+  });
+
+  // Show/hide clear button based on value
+  dateInput.addEventListener('input', () => {
+    dateClearBtn.style.display = dateInput.value ? 'flex' : 'none';
+  });
+
+  // Initial state
+  dateClearBtn.style.display = dateInput.value ? 'flex' : 'none';
+}
+
+// ================= STATS =================
+function updateStats(total, left, done) {
   const statsGrid = document.getElementById('statsGrid');
-  const totalEl = document.getElementById('totalTasks');
-  const leftEl = document.getElementById('leftTasks');
-  const doneEl = document.getElementById('doneTasks');
+  const totalTasks = document.getElementById('totalTasks');
+  const leftTasks = document.getElementById('leftTasks');
+  const doneTasks = document.getElementById('doneTasks');
 
-  if (state.automationData && state.automationData.length > 0) {
+  if (total > 0) {
     statsGrid.style.display = 'grid';
-    const total = state.automationData.length;
-    const done = state.currentIndex || 0;
-    const left = total - done;
-
-    totalEl.textContent = total;
-    leftEl.textContent = left;
-    doneEl.textContent = done;
+    totalTasks.textContent = total;
+    leftTasks.textContent = left;
+    doneTasks.textContent = done;
   } else {
     statsGrid.style.display = 'none';
   }
 }
 
-document.getElementById('startButton').addEventListener('click', async () => {
-  const jsonInput = document.getElementById('jsonInput').value;
-  const submitDate = document.getElementById('submitDate').value;
-  const statusEl = document.getElementById('status');
+// ================= MAIN AUTOMATION =================
+async function startAutomation() {
+  const jsonInput = document.getElementById('jsonInput');
+  const submitDate = document.getElementById('submitDate');
+  const status = document.getElementById('status');
+  const startButton = document.getElementById('startButton');
 
   try {
-    const data = JSON.parse(jsonInput);
-    if (!Array.isArray(data)) throw new Error("Input must be a JSON array.");
+    const data = JSON.parse(jsonInput.value);
 
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('Please provide a valid JSON array');
+    }
+
+    // Validate each entry
+    for (const entry of data) {
+      if (!entry.project || !entry.description || !entry.start_time || !entry.end_time) {
+        throw new Error('Each entry must have: project, description, start_time, end_time');
+      }
+    }
+
+    // Get current tab
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    if (!tab.url.startsWith("https://docs.google.com/forms")) {
-      statusEl.textContent = "Please open a Google Form first.";
-      statusEl.className = "error";
+
+    if (!tab.url.includes('docs.google.com/forms')) {
+      throw new Error('Please open a Google Form first');
+    }
+
+    // Store data
+    await chrome.storage.local.set({
+      automationData: data,
+      currentIndex: 0,
+      isActive: true,
+      customDate: submitDate.value || null,
+      originalUrl: tab.url.split('?')[0].split('#')[0]
+    });
+
+    // Update UI
+    updateStats(data.length, data.length, 0);
+    status.textContent = `Starting automation for ${data.length} tasks...`;
+    status.className = 'success';
+    startButton.disabled = true;
+    startButton.innerHTML = `
+      <span class="btn-icon">
+        <svg viewBox="0 0 24 24" class="spinning"><path d="M12 4V2C6.48 2 2 6.48 2 12h2c0-4.41 3.59-8 8-8zm0 14c3.31 0 6-2.69 6-6h-2c0 2.21-1.79 4-4 4V8z"/></svg>
+      </span>
+      Running...
+    `;
+
+    // Send message to content script
+    await chrome.tabs.sendMessage(tab.id, { action: 'START_AUTOMATION' });
+
+    // Poll for progress updates
+    pollProgress();
+
+  } catch (error) {
+    status.textContent = error.message;
+    status.className = 'error';
+  }
+}
+
+async function pollProgress() {
+  const status = document.getElementById('status');
+  const startButton = document.getElementById('startButton');
+
+  const interval = setInterval(async () => {
+    const state = await chrome.storage.local.get([
+      'automationData',
+      'currentIndex',
+      'isActive'
+    ]);
+
+    if (!state.isActive || !state.automationData) {
+      clearInterval(interval);
+      startButton.disabled = false;
+      startButton.innerHTML = `
+        <span class="btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        Start Automation
+      `;
       return;
     }
 
-    statusEl.textContent = "Automation Started!";
-    statusEl.className = "success";
+    const total = state.automationData.length;
+    const done = state.currentIndex;
+    const left = total - done;
 
-    await chrome.storage.local.set({ 
-      automationData: data, 
-      currentIndex: 0, 
-      isActive: true,
-      customDate: submitDate || null, // Optional custom date
-      originalUrl: tab.url.split('?')[0].split('#')[0]
-    });
-    
-    updateStats();
+    updateStats(total, left, done);
 
-    chrome.tabs.sendMessage(tab.id, { action: "START_AUTOMATION" }, (response) => {
-      if (chrome.runtime.lastError) {
-        chrome.tabs.reload(tab.id);
+    if (done >= total) {
+      clearInterval(interval);
+      status.textContent = 'All tasks completed successfully!';
+      status.className = 'success';
+      startButton.disabled = false;
+      startButton.innerHTML = `
+        <span class="btn-icon">
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+        Start Automation
+      `;
+      await chrome.storage.local.set({ isActive: false });
+    } else {
+      status.textContent = `Processing task ${done + 1} of ${total}...`;
+    }
+  }, 500);
+}
+
+async function resetProgress() {
+  const status = document.getElementById('status');
+  const startButton = document.getElementById('startButton');
+
+  await chrome.storage.local.set({
+    automationData: null,
+    currentIndex: 0,
+    isActive: false
+  });
+
+  updateStats(0, 0, 0);
+  status.textContent = 'Progress reset. Ready to start fresh.';
+  status.className = 'success';
+  startButton.disabled = false;
+  startButton.innerHTML = `
+    <span class="btn-icon">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </span>
+    Start Automation
+  `;
+}
+
+// ================= INIT =================
+document.addEventListener('DOMContentLoaded', () => {
+  initTheme();
+  initModals();
+  initCopyButtons();
+  initDateClear();
+
+  document.getElementById('startButton').addEventListener('click', startAutomation);
+  document.getElementById('resetButton').addEventListener('click', resetProgress);
+
+  // Check for existing progress
+  chrome.storage.local.get(['automationData', 'currentIndex', 'isActive'], (state) => {
+    if (state.automationData && state.automationData.length > 0) {
+      const total = state.automationData.length;
+      const done = state.currentIndex || 0;
+      const left = total - done;
+      updateStats(total, left, done);
+
+      if (state.isActive) {
+        pollProgress();
       }
-    });
+    }
+  });
+});
 
-  } catch (e) {
-    statusEl.textContent = "Error: " + e.message;
-    statusEl.className = "error";
+// Add spinning animation for loading state
+const style = document.createElement('style');
+style.textContent = `
+  .spinning {
+    animation: spin 1s linear infinite;
   }
-});
-
-document.getElementById('resetButton').addEventListener('click', async () => {
-  await chrome.storage.local.set({ automationData: [], currentIndex: 0, isActive: false, customDate: null });
-  document.getElementById('jsonInput').value = '';
-  document.getElementById('submitDate').value = '';
-  document.getElementById('status').textContent = 'Progress reset.';
-  document.getElementById('status').className = '';
-  updateStats();
-});
-
-// Initial load
-initTheme();
-updateStats();
-chrome.storage.local.get(['customDate'], (res) => {
-  if (res.customDate) document.getElementById('submitDate').value = res.customDate;
-});
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`;
+document.head.appendChild(style);
