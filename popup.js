@@ -6,18 +6,16 @@ document.getElementById('startButton').addEventListener('click', async () => {
     const data = JSON.parse(jsonInput);
     if (!Array.isArray(data)) throw new Error("Input must be a JSON array.");
 
-    statusEl.textContent = "Processing...";
-    statusEl.className = "success";
-
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    
-    if (!tab.url.startsWith("https://docs.google.com/forms")) {
+    if (!tab.url.includes("docs.google.com/forms")) {
       statusEl.textContent = "Please open a Google Form first.";
       statusEl.className = "error";
       return;
     }
 
-    // Save to storage and notify content script
+    statusEl.textContent = "Automation Started! Refresh page if it doesn't move.";
+    statusEl.className = "success";
+
     await chrome.storage.local.set({ 
       automationData: data, 
       currentIndex: 0, 
@@ -25,7 +23,13 @@ document.getElementById('startButton').addEventListener('click', async () => {
       originalUrl: tab.url.split('?')[0].split('#')[0]
     });
     
-    chrome.tabs.sendMessage(tab.id, { action: "START_AUTOMATION" });
+    // Inject and trigger
+    chrome.tabs.sendMessage(tab.id, { action: "START_AUTOMATION" }, () => {
+      if (chrome.runtime.lastError) {
+        // If script isn't loaded yet, reload the tab to inject it
+        chrome.tabs.reload(tab.id);
+      }
+    });
 
   } catch (e) {
     statusEl.textContent = "Invalid JSON: " + e.message;

@@ -1,184 +1,143 @@
-async function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+async function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+function realClick(el) {
+    if (!el) return;
+    el.focus();
+    ['mousedown', 'mouseup', 'click'].forEach(t => el.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true, view: window, buttons: 1 })));
 }
 
 async function findField(labelText) {
-  const headings = document.querySelectorAll('div[role="heading"], div[role="listitem"] span');
-  for (const el of headings) {
-    const text = el.innerText.trim();
-    if (text.toLowerCase().includes(labelText.toLowerCase())) {
-      const container = el.closest('[role="listitem"]');
-      if (container) return container;
+    const selectors = ['div[role="heading"]', 'div.M7eMe', 'div.HoXoMd', 'div[role="listitem"] span'];
+    for (const s of selectors) {
+        const elements = document.querySelectorAll(s);
+        for (const el of elements) {
+            if (el.innerText.trim().toLowerCase().includes(labelText.toLowerCase())) {
+                const container = el.closest('[role="listitem"]');
+                if (container) return container;
+            }
+        }
     }
-  }
-  return null;
+    return null;
 }
 
-async function fillField(labelText, value) {
-  if (value === undefined || value === null) return false;
-  const container = await findField(labelText);
-  if (!container) return false;
+async function handleDropdown(container, value) {
+    const listbox = container.querySelector('div[role="listbox"]');
+    if (!listbox) return false;
 
-  // Handle Listbox (Dropdowns)
-  const listbox = container.querySelector('div[role="listbox"]');
-  if (listbox) {
-    listbox.click();
-    await delay(500);
-    const options = document.querySelectorAll('div[role="option"]');
-    for (const opt of options) {
-      if (opt.innerText.trim() === value || opt.getAttribute('data-value') === value) {
-        opt.click();
-        await delay(300);
+    realClick(listbox);
+    await delay(1200);
+
+    const options = Array.from(document.querySelectorAll('div[role="option"]'));
+    const target = options.find(o => {
+        const rect = o.getBoundingClientRect();
+        const isVisible = rect.width > 0 && rect.height > 0;
+        const textMatch = o.innerText.trim().toLowerCase().includes(value.toLowerCase());
+        return isVisible && textMatch;
+    });
+
+    if (target) {
+        const inner = target.querySelector('span.vRMGwf') || target;
+        realClick(inner);
+        await delay(600);
+        if (listbox.innerText.toLowerCase().includes('choose')) {
+            target.focus();
+            target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+        }
         return true;
-      }
     }
     return false;
-  }
-
-  // Handle Radio buttons (Rating)
-  const radio = container.querySelector(`div[role="radio"][aria-label="${value}"], div[role="radio"][data-value="${value}"]`);
-  if (radio) {
-    radio.click();
-    return true;
-  }
-
-  // Try input or textarea
-  const input = container.querySelector('input, textarea');
-  if (input) {
-    input.value = value;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    input.dispatchEvent(new Event('blur', { bubbles: true }));
-    return true;
-  }
-
-  return false;
-}
-
-async function fillTime(labelText, timeStr) {
-  if (!timeStr) return;
-  const container = await findField(labelText);
-  if (!container) return;
-
-  const [hour, minute] = timeStr.split(':');
-  const inputs = container.querySelectorAll('input[type="number"]');
-  if (inputs.length >= 2) {
-    inputs[0].value = hour;
-    inputs[0].dispatchEvent(new Event('input', { bubbles: true }));
-    inputs[1].value = minute;
-    inputs[1].dispatchEvent(new Event('input', { bubbles: true }));
-    return true;
-  }
-  return false;
-}
-
-async function setCheckbox(ariaLabel, shouldCheck) {
-  const checkbox = document.querySelector(`div[role="checkbox"][aria-label*="${ariaLabel}"]`);
-  if (checkbox) {
-    const isChecked = checkbox.getAttribute('aria-checked') === 'true';
-    if (isChecked !== shouldCheck) {
-      checkbox.click();
-    }
-  }
 }
 
 async function runAutomation() {
-  const { automationData, currentIndex, isActive, originalUrl } = await chrome.storage.local.get(['automationData', 'currentIndex', 'isActive', 'originalUrl']);
-  
-  if (!isActive || !automationData || currentIndex >= automationData.length) {
-    if (isActive) {
-      console.log("Automation finished.");
-      await chrome.storage.local.set({ isActive: false });
+    const state = await chrome.storage.local.get(['automationData', 'currentIndex', 'isActive', 'originalUrl']);
+    if (!state.isActive || !state.automationData || state.currentIndex >= state.automationData.length) {
+        if (state.isActive) await chrome.storage.local.set({ isActive: false });
+        return;
     }
-    return;
-  }
 
-  // If we are on the confirmation page, go back to the form
-  if (window.location.href.includes('/formResponse')) {
-     window.location.href = originalUrl || window.location.href.split('/formResponse')[0] + '/viewform';
-     return;
-  }
+    if (window.location.href.includes('/formResponse')) {
+        const another = Array.from(document.querySelectorAll('a')).find(a => a.innerText.toLowerCase().includes('submit another'));
+        if (another) another.click();
+        else window.location.href = state.originalUrl || window.location.href.split('/formResponse')[0] + '/viewform';
+        return;
+    }
 
-  const entry = automationData[currentIndex];
-  console.log(`Processing entry ${currentIndex + 1}/${automationData.length}:`, entry);
+    const entry = state.automationData[state.currentIndex];
+    await delay(1500);
 
-  await delay(1500);
+    // 1. Email Checkbox (Record Email)
+    const emailDiv = Array.from(document.querySelectorAll('div[role="checkbox"]')).find(d => d.getAttribute('aria-label')?.toLowerCase().includes('record'));
+    if (emailDiv && emailDiv.getAttribute('aria-checked') === 'false') realClick(emailDiv);
 
-  // 1. Employee Name
-  await fillField("Employee Name", "Mr Monjel Morshed Sabbir");
-  await delay(500);
+    // 2. Date
+    const dateInput = document.querySelector('input[type="date"]');
+    if (dateInput) {
+        dateInput.value = new Date().toISOString().split('T')[0];
+        dateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+    }
 
-  // 2. Employee ID
-  await fillField("Employee ID", "202503");
-  await delay(500);
+    // 3. Dropdowns
+    const nameField = await findField("Employee Name");
+    if (nameField) await handleDropdown(nameField, "Monjel Morshed Sabbir");
+    await delay(800);
 
-  // 3. Project
-  if (entry.project) await fillField("Project", entry.project);
-  await delay(500);
+    const idField = await findField("Employee ID");
+    if (idField) await handleDropdown(idField, "202503");
+    await delay(800);
 
-  // 4. Task Description
-  if (entry.description) await fillField("Description", entry.description);
-  await delay(500);
-
-  // 5. Start Time
-  if (entry.start_time) await fillTime("Start Time", entry.start_time);
-  await delay(500);
-
-  // 6. End Time
-  if (entry.end_time) await fillTime("End Time", entry.end_time);
-  await delay(500);
-
-  // 7. Notes (Optional)
-  if (entry.notes) await fillField("Notes", entry.notes);
-  await delay(500);
-
-  // 8. Rating (Always 10)
-  await fillField("Rating", "10");
-  await delay(500);
-
-  // 9. Send copy (Always true)
-  await setCheckbox("Send me a copy", true);
-  await delay(1000);
-
-  // Find and click submit
-  const buttons = document.querySelectorAll('div[role="button"], span[role="button"]');
-  const submitBtn = Array.from(buttons).find(b => b.innerText.toLowerCase().includes('submit'));
-
-  if (submitBtn) {
-    console.log("Submitting form...");
-    await chrome.storage.local.set({ currentIndex: currentIndex + 1 });
-    submitBtn.click();
+    // 4. Texts
+    const projField = await findField("Project");
+    if (projField) {
+        const tx = projField.querySelector('textarea, input');
+        if (tx) { tx.value = entry.project; tx.dispatchEvent(new Event('input', { bubbles: true })); tx.dispatchEvent(new Event('blur', { bubbles: true })); }
+    }
     
-    // Wait for submission and the load event will kick in next
-    await delay(3000);
-    const anotherLink = Array.from(document.querySelectorAll('a')).find(a => a.innerText.toLowerCase().includes('submit another'));
-    if (anotherLink) {
-        anotherLink.click();
-    } else {
-        window.location.reload();
+    const descField = await findField("Description");
+    if (descField) {
+        const tx = descField.querySelector('textarea, input');
+        if (tx) { tx.value = entry.description; tx.dispatchEvent(new Event('input', { bubbles: true })); tx.dispatchEvent(new Event('blur', { bubbles: true })); }
     }
-  } else {
-    console.error("Submit button not found");
-  }
+
+    // 5. Times (Hour/Minute)
+    const fillT = async (label, val) => {
+        const c = await findField(label);
+        if (c && val) {
+            const [h, m] = val.split(':');
+            const ins = c.querySelectorAll('input[type="number"]');
+            if (ins.length >= 2) {
+                ins[0].value = h; ins[0].dispatchEvent(new Event('input', { bubbles: true }));
+                ins[1].value = m; ins[1].dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+    };
+    await fillT("Start Time", entry.start_time);
+    await fillT("End Time", entry.end_time);
+
+    // 6. Rating
+    const rateField = await findField("Rating");
+    if (rateField) {
+        const rad = rateField.querySelector('div[role="radio"][aria-label="10"]');
+        if (rad) realClick(rad);
+    }
+
+    // 7. Copy
+    const copy = Array.from(document.querySelectorAll('div[role="checkbox"]')).find(d => d.getAttribute('aria-label')?.toLowerCase().includes('send me a copy'));
+    if (copy && copy.getAttribute('aria-checked') === 'false') realClick(copy);
+
+    await delay(1000);
+    const sub = Array.from(document.querySelectorAll('div[role="button"], span[role="button"]')).find(b => b.innerText.toLowerCase().includes('submit'));
+    if (sub) {
+        await chrome.storage.local.set({ currentIndex: state.currentIndex + 1 });
+        realClick(sub);
+    }
 }
 
-// Check on load if automation is active
-if (document.readyState === 'complete') {
-    checkAndRun();
-} else {
-    window.addEventListener('load', checkAndRun);
-}
+if (document.readyState === 'complete') checkAndRun();
+else window.addEventListener('load', checkAndRun);
 
 function checkAndRun() {
-    chrome.storage.local.get(['isActive'], (result) => {
-        if (result.isActive) {
-            runAutomation();
-        }
-    });
+    chrome.storage.local.get(['isActive'], (res) => { if (res && res.isActive) runAutomation(); });
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "START_AUTOMATION") {
-    runAutomation();
-  }
-});
+chrome.runtime.onMessage.addListener(m => { if (m.action === "START_AUTOMATION") runAutomation(); });
