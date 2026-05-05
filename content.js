@@ -1,6 +1,4 @@
-// ================= CONFIG =================
-const EMPLOYEE_NAME = "Mr Monjel Morshed Sabbir";
-const EMPLOYEE_ID = "202503";
+// Config is loaded from config.js via ConfigManager
 
 // ================= UTIL =================
 async function delay(ms) {
@@ -39,8 +37,11 @@ async function findField(labelText) {
 let DROPDOWN_LOCK = false;
 
 async function waitForOptions() {
-  for (let i = 0; i < 30; i++) {
-    const options = document.querySelectorAll('[role="option"]');
+  for (let i = 0; i < 15; i++) {
+    const options = Array.from(document.querySelectorAll('[role="option"]')).filter(o => {
+      const rect = o.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 && o.offsetParent !== null;
+    });
     if (options.length > 0) return options;
     await delay(100);
   }
@@ -48,9 +49,12 @@ async function waitForOptions() {
 }
 
 async function waitForDropdownClose() {
-  for (let i = 0; i < 30; i++) {
-    const options = document.querySelectorAll('[role="option"]');
-    if (options.length === 0) return true;
+  for (let i = 0; i < 15; i++) {
+    const visibleOptions = Array.from(document.querySelectorAll('[role="option"]')).filter(o => {
+      const rect = o.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    });
+    if (visibleOptions.length === 0) return true;
     await delay(100);
   }
   return false;
@@ -59,7 +63,7 @@ async function waitForDropdownClose() {
 async function handleDropdown(container, value) {
   // 🔒 Prevent overlap
   while (DROPDOWN_LOCK) {
-    await delay(200);
+    await delay(100);
   }
 
   DROPDOWN_LOCK = true;
@@ -89,12 +93,12 @@ async function handleDropdown(container, value) {
     }
 
     // Scroll into view
-    listbox.scrollIntoView({ block: "center", behavior: "smooth" });
-    await delay(300);
+    listbox.scrollIntoView({ block: "center", behavior: "auto" });
+    await delay(150);
 
     // Open dropdown
     realClick(listbox);
-    await delay(200);
+    await delay(100);
 
     // Wait for options to appear
     const options = await waitForOptions();
@@ -166,24 +170,33 @@ async function handleDropdown(container, value) {
     }
 
     // Scroll target into view
-    target.scrollIntoView({ block: "center", behavior: "smooth" });
-    await delay(200);
+    target.scrollIntoView({ block: "center", behavior: "auto" });
+    await delay(100);
 
     // Click the option
     console.log("🎯 Clicking option:", target.innerText.trim());
-    realClick(target);
+    
+    // 🔥 CRITICAL: Click the inner span if it exists, Google Forms often binds there
+    const clickTarget = target.querySelector('span.vRMGwf') || target.querySelector('span') || target;
+    realClick(clickTarget);
 
     // Wait for dropdown to close
     const closed = await waitForDropdownClose();
 
     if (!closed) {
       console.log("⚠️ Dropdown didn't close properly, clicking outside");
-      // Click outside to close
-      document.body.click();
-      await delay(200);
+      // Fallback for stubborn Google Forms menus
+      if (listbox.innerText.toLowerCase().includes('choose') || input) {
+        console.log("⚠️ Selection didn't register, trying Enter key...");
+        target.focus();
+        target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
+      } else {
+        document.body.click();
+      }
+      await delay(100);
     }
 
-    await delay(400);
+    await delay(200);
 
     // Verify selection by checking the displayed value
     if (input) {
@@ -299,15 +312,18 @@ async function runAutomation() {
     dateInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  // Load full config
+  const config = await ConfigManager.getAll();
+
   // ================= DROPDOWN FLOW (ENHANCED) =================
 
   console.log("🔄 Starting dropdown selection...");
 
   // Step 1: Name
-  console.log("📝 Selecting Employee Name:", EMPLOYEE_NAME);
+  console.log("📝 Selecting Employee Name:", config.employeeName);
   const nameField = await findField("Employee Name");
   if (nameField) {
-    const ok = await handleDropdown(nameField, EMPLOYEE_NAME);
+    const ok = await handleDropdown(nameField, config.employeeName);
     if (!ok) {
       console.error("❌ Failed to select Employee Name");
       return;
@@ -318,13 +334,13 @@ async function runAutomation() {
   }
 
   // 🔥 IMPORTANT: wait before next dropdown
-  await delay(1000);
+  await delay(300);
 
   // Step 2: ID
-  console.log("📝 Selecting Employee ID:", EMPLOYEE_ID);
+  console.log("📝 Selecting Employee ID:", config.employeeId);
   const idField = await findField("Employee ID");
   if (idField) {
-    const ok = await handleDropdown(idField, EMPLOYEE_ID);
+    const ok = await handleDropdown(idField, config.employeeId);
     if (!ok) {
       console.error("❌ Failed to select Employee ID");
       return;
@@ -334,7 +350,7 @@ async function runAutomation() {
     console.error("❌ Employee ID field not found");
   }
 
-  await delay(800);
+  await delay(200);
 
   // ================= TEXT =================
   const proj = await findField("Project");
@@ -349,21 +365,23 @@ async function runAutomation() {
 
   // ================= RATING =================
   const rate = await findField("Self Rating");
-  if (rate) {
-    const r = rate.querySelector('div[role="radio"][aria-label="10"]');
+  if (rate && config.defaultRating) {
+    const r = rate.querySelector(`div[role="radio"][aria-label="${config.defaultRating}"]`);
     if (r) realClick(r);
   }
 
   // Copy checkbox
-  const copy = Array.from(
-    document.querySelectorAll('div[role="checkbox"]'),
-  ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("copy"));
+  if (config.sendCopy) {
+    const copy = Array.from(
+      document.querySelectorAll('div[role="checkbox"]'),
+    ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("copy"));
 
-  if (copy && copy.getAttribute("aria-checked") === "false") {
-    realClick(copy);
+    if (copy && copy.getAttribute("aria-checked") === "false") {
+      realClick(copy);
+    }
   }
 
-  await delay(1000);
+  await delay(500);
 
   // ================= SUBMIT =================
   const submit = Array.from(document.querySelectorAll('[role="button"]')).find(

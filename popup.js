@@ -365,6 +365,10 @@ async function initAccordion() {
   const automationSection = automationToggle.parentElement;
   const automationContent = document.getElementById('automationContent');
 
+  const settingsToggle = document.getElementById('settingsToggle');
+  const settingsSection = settingsToggle.parentElement;
+  const settingsContent = document.getElementById('settingsContent');
+
   const openSection = (section, content) => {
     section.classList.remove('collapsed');
     content.classList.remove('hidden');
@@ -375,25 +379,36 @@ async function initAccordion() {
     content.classList.add('hidden');
   };
 
+  const closeAll = () => {
+    closeSection(assistantSection, assistantContent);
+    closeSection(automationSection, automationContent);
+    closeSection(settingsSection, settingsContent);
+  };
+
   assistantToggle.addEventListener('click', () => {
     if (assistantSection.classList.contains('collapsed')) {
+      closeAll();
       openSection(assistantSection, assistantContent);
-      closeSection(automationSection, automationContent);
     } else {
-      // If already open, swap to the other one
       closeSection(assistantSection, assistantContent);
-      openSection(automationSection, automationContent);
     }
   });
 
   automationToggle.addEventListener('click', () => {
     if (automationSection.classList.contains('collapsed')) {
+      closeAll();
       openSection(automationSection, automationContent);
-      closeSection(assistantSection, assistantContent);
     } else {
-      // If already open, swap to the other one
       closeSection(automationSection, automationContent);
-      openSection(assistantSection, assistantContent);
+    }
+  });
+
+  settingsToggle.addEventListener('click', () => {
+    if (settingsSection.classList.contains('collapsed')) {
+      closeAll();
+      openSection(settingsSection, settingsContent);
+    } else {
+      closeSection(settingsSection, settingsContent);
     }
   });
 
@@ -402,10 +417,42 @@ async function initAccordion() {
   if (state.isActive) {
     openSection(automationSection, automationContent);
     closeSection(assistantSection, assistantContent);
+    closeSection(settingsSection, settingsContent);
   } else {
     openSection(assistantSection, assistantContent);
     closeSection(automationSection, automationContent);
+    closeSection(settingsSection, settingsContent);
   }
+}
+
+// ================= SETTINGS =================
+async function initSettings() {
+  const configName = document.getElementById('configName');
+  const configId = document.getElementById('configId');
+  const configRating = document.getElementById('configRating');
+  const configCopy = document.getElementById('configCopy');
+  const saveConfigBtn = document.getElementById('saveConfigBtn');
+  const status = document.getElementById('status');
+
+  // Load existing config
+  const config = await ConfigManager.getAll();
+  configName.value = config.employeeName || '';
+  configId.value = config.employeeId || '';
+  configRating.value = config.defaultRating || '10';
+  configCopy.checked = config.sendCopy;
+
+  saveConfigBtn.addEventListener('click', async () => {
+    await ConfigManager.setAll({
+      employeeName: configName.value.trim() || DEFAULT_CONFIG.employeeName,
+      employeeId: configId.value.trim() || DEFAULT_CONFIG.employeeId,
+      defaultRating: configRating.value || DEFAULT_CONFIG.defaultRating,
+      sendCopy: configCopy.checked
+    });
+    
+    status.textContent = 'Configuration Saved!';
+    status.className = 'success';
+    setTimeout(() => status.textContent = '', 2000);
+  });
 }
 
 // ================= CHAT HELPER =================
@@ -502,6 +549,100 @@ function renderActiveState(container, url) {
   });
 }
 
+// ================= FORM URL HELPER =================
+async function initFormHelper() {
+  const container = document.getElementById('formUrlContainer');
+  const { formUrl } = await chrome.storage.local.get('formUrl');
+
+  if (!formUrl) {
+    renderFormInsertState(container);
+  } else {
+    renderFormActiveState(container, formUrl);
+  }
+}
+
+function renderFormInsertState(container) {
+  container.innerHTML = `
+    <button class="insert-chat-btn" id="insertFormBtn">
+      Configure Google Form URL
+    </button>
+  `;
+
+  document.getElementById('insertFormBtn').addEventListener('click', () => {
+    renderFormInputState(container, '');
+  });
+}
+
+function renderFormInputState(container, existingUrl) {
+  const isEditing = existingUrl !== '';
+  container.innerHTML = `
+    <div class="chat-url-input-wrapper">
+      <input type="url" class="chat-input" id="formUrlInput" placeholder="Paste Google Form URL..." value="${existingUrl}">
+      <div class="chat-actions">
+        <button class="save-btn" id="saveFormBtn">${isEditing ? 'Update' : 'Save'}</button>
+        ${isEditing ? '<button class="remove-btn" id="removeFormBtn">Remove</button>' : ''}
+        <button class="cancel-btn" id="cancelFormBtn">Cancel</button>
+      </div>
+    </div>
+  `;
+
+  const input = document.getElementById('formUrlInput');
+  input.focus();
+
+  document.getElementById('saveFormBtn').addEventListener('click', async () => {
+    const url = input.value.trim();
+    const status = document.getElementById('status');
+    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    
+    if (!urlRegex.test(url) || !url.includes('docs.google.com/forms')) {
+      status.textContent = 'Please enter a valid Google Form URL';
+      status.className = 'error';
+      return;
+    }
+
+    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
+    await chrome.storage.local.set({ formUrl: finalUrl });
+    status.textContent = 'Form URL Saved!';
+    status.className = 'success';
+    initFormHelper();
+    setTimeout(() => status.textContent = '', 2000);
+  });
+
+  if (isEditing) {
+    document.getElementById('removeFormBtn').addEventListener('click', async () => {
+      if (confirm('Remove Form URL?')) {
+        await chrome.storage.local.remove('formUrl');
+        initFormHelper();
+      }
+    });
+  }
+
+  document.getElementById('cancelFormBtn').addEventListener('click', () => {
+    initFormHelper();
+  });
+}
+
+function renderFormActiveState(container, url) {
+  container.innerHTML = `
+    <div class="chat-url-display-wrapper">
+      <button class="open-chat-btn" id="openFormBtn">
+        Open Google Form
+      </button>
+      <button class="edit-chat-btn" id="editFormBtn" title="Edit URL">
+        <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+      </button>
+    </div>
+  `;
+
+  document.getElementById('openFormBtn').addEventListener('click', () => {
+    window.open(url, '_blank');
+  });
+
+  document.getElementById('editFormBtn').addEventListener('click', () => {
+    renderFormInputState(container, url);
+  });
+}
+
 // ================= INIT =================
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
@@ -509,8 +650,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initCopyButtons();
   initDateClear();
   initChatHelper();
+  initFormHelper();
   initDailyNotes();
   initAccordion();
+  initSettings();
 
   document.getElementById('startButton').addEventListener('click', startAutomation);
   document.getElementById('resetButton').addEventListener('click', resetProgress);
