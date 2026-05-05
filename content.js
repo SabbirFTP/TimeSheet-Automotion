@@ -1,6 +1,4 @@
-// ================= CONFIG =================
-const EMPLOYEE_NAME = "Mr Monjel Morshed Sabbir";
-const EMPLOYEE_ID = "202503";
+// Config is loaded from config.js via ConfigManager
 
 // ================= UTIL =================
 async function delay(ms) {
@@ -299,15 +297,18 @@ async function runAutomation() {
     dateInput.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
+  // Load full config
+  const config = await ConfigManager.getAll();
+
   // ================= DROPDOWN FLOW (ENHANCED) =================
 
   console.log("🔄 Starting dropdown selection...");
 
   // Step 1: Name
-  console.log("📝 Selecting Employee Name:", EMPLOYEE_NAME);
+  console.log("📝 Selecting Employee Name:", config.employeeName);
   const nameField = await findField("Employee Name");
   if (nameField) {
-    const ok = await handleDropdown(nameField, EMPLOYEE_NAME);
+    const ok = await handleDropdown(nameField, config.employeeName);
     if (!ok) {
       console.error("❌ Failed to select Employee Name");
       return;
@@ -321,10 +322,10 @@ async function runAutomation() {
   await delay(1000);
 
   // Step 2: ID
-  console.log("📝 Selecting Employee ID:", EMPLOYEE_ID);
+  console.log("📝 Selecting Employee ID:", config.employeeId);
   const idField = await findField("Employee ID");
   if (idField) {
-    const ok = await handleDropdown(idField, EMPLOYEE_ID);
+    const ok = await handleDropdown(idField, config.employeeId);
     if (!ok) {
       console.error("❌ Failed to select Employee ID");
       return;
@@ -349,18 +350,20 @@ async function runAutomation() {
 
   // ================= RATING =================
   const rate = await findField("Self Rating");
-  if (rate) {
-    const r = rate.querySelector('div[role="radio"][aria-label="10"]');
+  if (rate && config.defaultRating) {
+    const r = rate.querySelector(`div[role="radio"][aria-label="${config.defaultRating}"]`);
     if (r) realClick(r);
   }
 
   // Copy checkbox
-  const copy = Array.from(
-    document.querySelectorAll('div[role="checkbox"]'),
-  ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("copy"));
+  if (config.sendCopy) {
+    const copy = Array.from(
+      document.querySelectorAll('div[role="checkbox"]'),
+    ).find((d) => d.getAttribute("aria-label")?.toLowerCase().includes("copy"));
 
-  if (copy && copy.getAttribute("aria-checked") === "false") {
-    realClick(copy);
+    if (copy && copy.getAttribute("aria-checked") === "false") {
+      realClick(copy);
+    }
   }
 
   await delay(1000);
