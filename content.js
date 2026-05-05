@@ -37,11 +37,8 @@ async function findField(labelText) {
 let DROPDOWN_LOCK = false;
 
 async function waitForOptions() {
-  for (let i = 0; i < 15; i++) {
-    const options = Array.from(document.querySelectorAll('[role="option"]')).filter(o => {
-      const rect = o.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0 && o.offsetParent !== null;
-    });
+  for (let i = 0; i < 30; i++) {
+    const options = document.querySelectorAll('[role="option"]');
     if (options.length > 0) return options;
     await delay(100);
   }
@@ -49,12 +46,9 @@ async function waitForOptions() {
 }
 
 async function waitForDropdownClose() {
-  for (let i = 0; i < 15; i++) {
-    const visibleOptions = Array.from(document.querySelectorAll('[role="option"]')).filter(o => {
-      const rect = o.getBoundingClientRect();
-      return rect.width > 0 && rect.height > 0;
-    });
-    if (visibleOptions.length === 0) return true;
+  for (let i = 0; i < 30; i++) {
+    const options = document.querySelectorAll('[role="option"]');
+    if (options.length === 0) return true;
     await delay(100);
   }
   return false;
@@ -63,7 +57,7 @@ async function waitForDropdownClose() {
 async function handleDropdown(container, value) {
   // 🔒 Prevent overlap
   while (DROPDOWN_LOCK) {
-    await delay(100);
+    await delay(200);
   }
 
   DROPDOWN_LOCK = true;
@@ -93,12 +87,12 @@ async function handleDropdown(container, value) {
     }
 
     // Scroll into view
-    listbox.scrollIntoView({ block: "center", behavior: "auto" });
-    await delay(150);
+    listbox.scrollIntoView({ block: "center", behavior: "smooth" });
+    await delay(300);
 
     // Open dropdown
     realClick(listbox);
-    await delay(100);
+    await delay(200);
 
     // Wait for options to appear
     const options = await waitForOptions();
@@ -170,33 +164,24 @@ async function handleDropdown(container, value) {
     }
 
     // Scroll target into view
-    target.scrollIntoView({ block: "center", behavior: "auto" });
-    await delay(100);
+    target.scrollIntoView({ block: "center", behavior: "smooth" });
+    await delay(200);
 
     // Click the option
     console.log("🎯 Clicking option:", target.innerText.trim());
-    
-    // 🔥 CRITICAL: Click the inner span if it exists, Google Forms often binds there
-    const clickTarget = target.querySelector('span.vRMGwf') || target.querySelector('span') || target;
-    realClick(clickTarget);
+    realClick(target);
 
     // Wait for dropdown to close
     const closed = await waitForDropdownClose();
 
     if (!closed) {
       console.log("⚠️ Dropdown didn't close properly, clicking outside");
-      // Fallback for stubborn Google Forms menus
-      if (listbox.innerText.toLowerCase().includes('choose') || input) {
-        console.log("⚠️ Selection didn't register, trying Enter key...");
-        target.focus();
-        target.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, bubbles: true }));
-      } else {
-        document.body.click();
-      }
-      await delay(100);
+      // Click outside to close
+      document.body.click();
+      await delay(200);
     }
 
-    await delay(200);
+    await delay(400);
 
     // Verify selection by checking the displayed value
     if (input) {
@@ -334,7 +319,7 @@ async function runAutomation() {
   }
 
   // 🔥 IMPORTANT: wait before next dropdown
-  await delay(300);
+  await delay(1000);
 
   // Step 2: ID
   console.log("📝 Selecting Employee ID:", config.employeeId);
@@ -350,7 +335,7 @@ async function runAutomation() {
     console.error("❌ Employee ID field not found");
   }
 
-  await delay(200);
+  await delay(800);
 
   // ================= TEXT =================
   const proj = await findField("Project");
@@ -381,7 +366,7 @@ async function runAutomation() {
     }
   }
 
-  await delay(500);
+  await delay(1000);
 
   // ================= SUBMIT =================
   const submit = Array.from(document.querySelectorAll('[role="button"]')).find(

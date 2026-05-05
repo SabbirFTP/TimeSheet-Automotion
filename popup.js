@@ -458,7 +458,7 @@ async function initSettings() {
 // ================= CHAT HELPER =================
 async function initChatHelper() {
   const container = document.getElementById('chatUrlContainer');
-  const { trainedChatUrl } = await chrome.storage.local.get('trainedChatUrl');
+  const trainedChatUrl = await ConfigManager.get('trainedChatUrl');
 
   if (!trainedChatUrl) {
     renderInsertState(container);
@@ -498,15 +498,20 @@ function renderInputState(container, existingUrl) {
   document.getElementById('saveChatBtn').addEventListener('click', async () => {
     const url = input.value.trim();
     const status = document.getElementById('status');
-    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     
-    if (!urlRegex.test(url)) {
+    let finalUrl = url;
+    if (url && !url.startsWith('http')) {
+      finalUrl = `https://${url}`;
+    }
+
+    try {
+      if (finalUrl) new URL(finalUrl); // Validate URL format natively
+    } catch (e) {
       status.textContent = 'Please enter a valid URL';
       status.className = 'error';
       return;
     }
 
-    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
     await chrome.storage.local.set({ trainedChatUrl: finalUrl });
     status.textContent = 'URL Saved!';
     status.className = 'success';
@@ -552,7 +557,7 @@ function renderActiveState(container, url) {
 // ================= FORM URL HELPER =================
 async function initFormHelper() {
   const container = document.getElementById('formUrlContainer');
-  const { formUrl } = await chrome.storage.local.get('formUrl');
+  const formUrl = await ConfigManager.get('formUrl');
 
   if (!formUrl) {
     renderFormInsertState(container);
@@ -592,15 +597,26 @@ function renderFormInputState(container, existingUrl) {
   document.getElementById('saveFormBtn').addEventListener('click', async () => {
     const url = input.value.trim();
     const status = document.getElementById('status');
-    const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
     
-    if (!urlRegex.test(url) || !url.includes('docs.google.com/forms')) {
+    let finalUrl = url;
+    if (url && !url.startsWith('http')) {
+      finalUrl = `https://${url}`;
+    }
+
+    try {
+      if (finalUrl) new URL(finalUrl); // Validate URL format natively
+    } catch (e) {
+      status.textContent = 'Please enter a valid URL';
+      status.className = 'error';
+      return;
+    }
+
+    if (finalUrl && !finalUrl.includes('docs.google.com/forms')) {
       status.textContent = 'Please enter a valid Google Form URL';
       status.className = 'error';
       return;
     }
 
-    const finalUrl = url.startsWith('http') ? url : `https://${url}`;
     await chrome.storage.local.set({ formUrl: finalUrl });
     status.textContent = 'Form URL Saved!';
     status.className = 'success';

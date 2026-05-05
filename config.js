@@ -4,7 +4,7 @@ const DEFAULT_CONFIG = {
   employeeId: "202503",
   defaultRating: "10",
   sendCopy: true,
-  formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf_d1RBXPkxtoCzCfGWKnnbnlAk2ILn2Mgis7eYn3Kh6XBlzQ/viewform?pli=1&pli=1",
+  formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSf_d1RBXPkxtoCzCfGWKnnbnlAk2ILn2Mgis7eYn3Kh6XBlzQ/viewform",
   trainedChatUrl: ""
 };
 
